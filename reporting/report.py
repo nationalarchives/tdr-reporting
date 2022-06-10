@@ -156,7 +156,7 @@ def generate_report():
 
 
 # noinspection PyBroadException
-def handler():
+def handler(event=None, context=None):
     try:
         generate_report()
     except Exception:
