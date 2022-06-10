@@ -1,2 +1,5 @@
 # Load all runtime and dev packages
 -r requirements-runtime.txt
+requests
+sgqlc
+boto3
