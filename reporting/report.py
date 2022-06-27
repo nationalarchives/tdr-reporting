@@ -133,7 +133,7 @@ def generate_report():
     current_cursor = None
     while has_next_page:
         query = get_query(current_cursor)
-        endpoint = HTTPEndpoint(api_url, headers)
+        endpoint = HTTPEndpoint(api_url, headers, 300)
         data = endpoint(query)
         if 'errors' in data:
             raise Exception("Invalid data response", data['errors'])

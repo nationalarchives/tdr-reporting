@@ -27,6 +27,7 @@ def set_up(kms):
     os.environ["AWS_LAMBDA_FUNCTION_NAME"] = "test-function-name"
     os.environ["CLIENT_ID"] = "tdr-reporting"
     os.environ['CLIENT_SECRET'] = encrypt(kms_key, kms, "client-secret")
+    os.environ['AWS_DEFAULT_REGION'] = 'eu-west-2'
 
 
 def access_token():

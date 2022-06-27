@@ -14,6 +14,7 @@ from reporting import report
 from utils.utils import *
 
 csv_file_path = "../generated_report/report.csv"
+timeout = 300
 graphql_query = """
 query {
   consignments(limit: 100, currentCursor: null) {
@@ -149,6 +150,7 @@ def check_mock_urlopen(mock_urlopen,
     args = mock_urlopen.call_args
     req = args[0][0]
     eq_(req.method, method)
+    eq_(args[1]['timeout'], timeout)
     check_request_headers(req, base_headers)
     check_request_query(req, query or graphql_query)
 
@@ -216,22 +218,21 @@ def test_missing_required_field(mock_urlopen, kms):
 
 @patch('urllib.request.urlopen')
 def test_headers_and_query(mock_urlopen, kms):
-    """Test if all headers and query are passed"""
+    """Test if all headers, query and standard timeout are passed"""
 
     with patch('reporting.report.requests.post') as mock_post:
         set_up(kms)
         configure_mock_urlopen(mock_urlopen, graphql_response_ok)
         mock_post.return_value.status_code = 200
         mock_post.return_value.json = access_token
+        report.handler()
         headers = {'Authorization': f'Bearer {access_token()["access_token"]}'}
-        response = report.handler()
-        assert response['statusCode'] == 500
         check_mock_urlopen(mock_urlopen, base_headers=headers)
 
 
 @patch('urllib.request.urlopen')
-def test_headers(mock_urlopen, kms):
-    """Test if all headers are passed"""
+def test_http_server_error(mock_urlopen, kms):
+    """Test if HTTP error without JSON payload is handled"""
 
     with patch('reporting.report.requests.post') as mock_post:
         set_up(kms)
@@ -246,7 +247,5 @@ def test_headers(mock_urlopen, kms):
         configure_mock_urlopen(mock_urlopen, err)
         mock_post.return_value.status_code = 200
         mock_post.return_value.json = access_token
-        headers = {'Authorization': f'Bearer {access_token()["access_token"]}'}
         response = report.handler()
         assert response['statusCode'] == 500
-        check_mock_urlopen(mock_urlopen, base_headers=headers)
