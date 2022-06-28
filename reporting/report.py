@@ -127,12 +127,12 @@ def node_to_dict(node):
 
 def generate_report():
     api_url = f'{os.environ["CONSIGNMENT_API_URL"]}/graphql'
-    headers = {'Authorization': f'Bearer {get_token()}'}
     all_consignments = []
     has_next_page = True
     current_cursor = None
     while has_next_page:
         query = get_query(current_cursor)
+        headers = {'Authorization': f'Bearer {get_token()}'}
         endpoint = HTTPEndpoint(api_url, headers, 300)
         data = endpoint(query)
         if 'errors' in data:
@@ -143,6 +143,7 @@ def generate_report():
         consignments_dict = [node_to_dict(edge.node) for edge in consignments.edges]
         all_consignments.extend(consignments_dict)
         current_cursor = consignments.edges[-1].cursor if len(consignments.edges) > 0 else None
+        print("Total consignments: ", len(all_consignments))
 
     create_directory()
     with open(csv_file_dir + csv_file_name, 'w', newline='') as csvfile:
