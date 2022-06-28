@@ -1,0 +1,22 @@
+name: TDR Run Lambda Tests
+on:
+  pull_request:
+  push:
+    branches-ignore:
+      - main
+      - release-*
+permissions:
+  id-token: write
+  contents: read
+jobs:
+  test:
+    uses: nationalarchives/tdr-github-actions/.github/workflows/tdr_test.yml@add-set-python-version
+    with:
+      repo-name: tdr-reporting
+      test-command: |
+        python -m venv venv
+        source venv/bin/activate
+        pip install -r requirements.txt
+        python -m pytest
+    secrets:
+      SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
