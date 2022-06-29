@@ -5,14 +5,14 @@ from sgqlc.types import Type, Field, list_of
 from sgqlc.types.relay import Connection
 from sgqlc.operation import Operation
 from base64 import b64decode
+from slack_sdk import WebClient
 
 import requests
 import csv
 import boto3
 import os
 
-csv_file_dir = "/tmp/"
-csv_file_name = "report.csv"
+csv_file_path = "/tmp/report.csv"
 
 
 def decode(env_var_name):
@@ -125,7 +125,8 @@ def node_to_dict(node):
     }
 
 
-def generate_report():
+def generate_report(event):
+    print(event['emails'])
     api_url = f'{os.environ["CONSIGNMENT_API_URL"]}/graphql'
     all_consignments = []
     has_next_page = True
@@ -146,7 +147,7 @@ def generate_report():
         print("Total consignments: ", len(all_consignments))
 
     # create_directory()
-    with open(csv_file_dir + csv_file_name, 'w', newline='') as csvfile:
+    with open(csv_file_path, 'w', newline='') as csvfile:
         fieldnames = [
             "ConsignmentReference", "ConsignmentType", "TransferringBodyName", "BodyCode",
             "SeriesCode", "ConsignmentId", "UserId", "CreatedDateTime", "TransferInitiatedDatetime", "ExportDateTime",
@@ -154,12 +155,23 @@ def generate_report():
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         writer.writeheader()
         writer.writerows(all_consignments)
+    slack(event['emails'])
+
+
+def slack(emails):
+    slack_bot_token = decode("SLACK_BOT_TOKEN")
+    client = WebClient(token=slack_bot_token)
+    print("sending report - ", emails)
+    for email in emails:
+        user_data = client.users_lookupByEmail(email=email)
+        with open(csv_file_path, 'rb') as csvfile:
+            client.files_upload(file=csvfile, channels=[user_data["user"]["id"]])
 
 
 # noinspection PyBroadException
 def handler(event=None, context=None):
     try:
-        generate_report()
+        generate_report(event)
     except Exception:
         traceback.print_exc()
         return {
