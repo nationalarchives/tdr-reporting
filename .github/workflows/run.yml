@@ -1,0 +1,19 @@
+name: TDR Run Lambda function
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment'
+        required: true
+        default: 'intg'
+      email:
+        description: 'Email'
+        required: true
+jobs:
+  run:
+    uses: nationalarchives/tdr-github-actions/.github/workflows/tdr_test.yml@add-set-python-version
+    with:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      FunctionName: tdr-reporting-${{ github.event.inputs.environment }}
+      Payload: '{}'

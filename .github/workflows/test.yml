@@ -18,5 +18,3 @@ jobs:
         source venv/bin/activate
         pip install -r requirements.txt
         python -m pytest
-    secrets:
-      SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
