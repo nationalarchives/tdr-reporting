@@ -145,7 +145,7 @@ def generate_report():
         current_cursor = consignments.edges[-1].cursor if len(consignments.edges) > 0 else None
         print("Total consignments: ", len(all_consignments))
 
-    create_directory()
+    # create_directory()
     with open(csv_file_dir + csv_file_name, 'w', newline='') as csvfile:
         fieldnames = [
             "ConsignmentReference", "ConsignmentType", "TransferringBodyName", "BodyCode",
