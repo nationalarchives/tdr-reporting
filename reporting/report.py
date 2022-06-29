@@ -11,7 +11,7 @@ import csv
 import boto3
 import os
 
-csv_file_dir = "../generated_report/"
+csv_file_dir = "/tmp/"
 csv_file_name = "report.csv"
 
 

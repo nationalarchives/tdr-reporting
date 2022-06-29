@@ -6,20 +6,8 @@ on:
         description: 'Environment'
         required: true
         type: string
-#    secrets:
-#      ACCOUNT_NUMBER:
-#        required: true
-#      MANAGEMENT_ACCOUNT:
-#        required: true
-#      WORKFLOW_PAT:
-#        required: true
-#      SLACK_WEBHOOK:
-#        required: true
-permissions:
-  id-token: write
-  contents: write
 jobs:
-  deploy:
+  run:
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     steps:
