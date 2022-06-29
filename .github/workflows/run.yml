@@ -1,8 +1,9 @@
 name: TDR Run Lambda function
 on:
-  workflow_call:
+  workflow_dispatch:
     inputs:
       environment:
+        description: 'Environment'
         required: true
         type: string
 #    secrets:
