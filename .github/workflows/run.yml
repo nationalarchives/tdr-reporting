@@ -1,17 +1,38 @@
 name: TDR Run Lambda function
 on:
-  workflow_dispatch:
+  workflow_call:
     inputs:
       environment:
-        description: 'Environment'
         required: true
-        default: 'intg'
-
+        type: string
+#    secrets:
+#      ACCOUNT_NUMBER:
+#        required: true
+#      MANAGEMENT_ACCOUNT:
+#        required: true
+#      WORKFLOW_PAT:
+#        required: true
+#      SLACK_WEBHOOK:
+#        required: true
+permissions:
+  id-token: write
+  contents: write
 jobs:
-  test:
-    uses: nationalarchives/tdr-github-actions/.github/workflows/tdr_test.yml@add-set-python-version
-    with:
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      FunctionName: tdr-reporting-${{ github.event.inputs.environment }}
-      Payload: '{}'
+  deploy:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - id: role-name
+        run: print(f"::set-output name=role-name::TDRGithubActionsDeployLambda{'${{ inputs.environment }}'.title()}")
+        shell: python
+      - name: Configure AWS credentials for Lambda
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.ACCOUNT_NUMBER }}:role/${{ steps.role-name.outputs.role-name }}
+          aws-region: eu-west-2
+          role-session-name: ECRLogin
+      - name: run lambda function
+        run: |
+          aws lambda invoke --function-name tdr-reporting-${{ inputs.environment }} --cli-binary-format raw-in-base64-out --payload '{}' response.json
