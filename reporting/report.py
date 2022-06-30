@@ -126,6 +126,8 @@ def node_to_dict(node):
 
 
 def generate_report(event):
+    print(decode("SLACK_BOT_TOKEN"))
+    print(decode("CLIENT_SECRET"))
     print(event['emails'])
     api_url = f'{os.environ["CONSIGNMENT_API_URL"]}/graphql'
     all_consignments = []
