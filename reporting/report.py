@@ -13,8 +13,8 @@ import os
 
 from slack_sdk.errors import SlackApiError
 
-from reporting import default_report_type
-from reporting.slack import slack
+from . import default_report_type
+from .slack import slack
 
 csv_file_path = "/tmp/report.csv"
 
