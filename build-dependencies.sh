@@ -17,4 +17,4 @@ mkdir /lambda
 cp -r /pip/* /lambda
 cd /lambda
 zip -r function.zip *
-zip -g function.zip /report.py
+zip -g function.zip /*.py
