@@ -1,5 +1,4 @@
 import io
-import json
 import urllib
 from unittest.mock import patch
 
@@ -13,7 +12,7 @@ from nose.tools import eq_
 from reporting import report
 from utils.utils import *
 
-csv_file_path = "../generated_report/report.csv"
+csv_file_path = "/tmp/report.csv"
 timeout = 300
 graphql_query = """
 query {
@@ -86,6 +85,18 @@ graphql_response_missing_required_fields = b'''
     }
   }
 }'''
+
+slack_api_response_ok = {
+    "ok": True,
+    "user": {
+        "id": "U03DV9QNWUT",
+    }
+}
+
+slack_api_response_invalid = {
+    "ok": False,
+    "error": "invalid_auth"
+}
 
 
 def configure_mock_urlopen(mock_urlopen, payload):
@@ -161,16 +172,19 @@ def kms():
         yield boto3.client('kms', region_name='eu-west-2')
 
 
+@httpretty.activate(allow_net_connect=False)
 @patch('urllib.request.urlopen')
 def test_report_with_valid_response(mock_urlopen, kms):
     """Test if it generates report.csv with valid graphql response"""
 
     with patch('reporting.report.requests.post') as mock_post:
         set_up(kms)
+        setup_slack_api(slack_api_response_ok)
         configure_mock_urlopen(mock_urlopen, graphql_response_ok)
         mock_post.return_value.status_code = 200
         mock_post.return_value.json = access_token
-        report.handler()
+        remove_csv()
+        report.handler({"emails": ["aa@gmail.com"]})
         df = pandas.read_csv(csv_file_path)
         assert len(df) == 1
         assert df['ConsignmentReference'][0] == 'TDR-2022-C'
@@ -187,8 +201,6 @@ def test_report_with_valid_response(mock_urlopen, kms):
         assert df["FileCount"][0] == 0
         assert df['TotalSize(Bytes)'][0] == 0
 
-    remove_csv()
-
 
 @patch('urllib.request.urlopen')
 def test_json_error(mock_urlopen, kms):
@@ -196,10 +208,11 @@ def test_json_error(mock_urlopen, kms):
 
     with patch('reporting.report.requests.post') as mock_post:
         set_up(kms)
+        setup_slack_api(slack_api_response_ok)
         configure_mock_urlopen(mock_urlopen, graphql_response_json_error)
         mock_post.return_value.status_code = 200
         mock_post.return_value.json = access_token
-        response = report.handler()
+        response = report.handler({"emails": ["aa@gmail.com"]})
         assert response['statusCode'] == 500
 
 
@@ -209,10 +222,11 @@ def test_missing_required_field(mock_urlopen, kms):
 
     with patch('reporting.report.requests.post') as mock_post:
         set_up(kms)
+        setup_slack_api(slack_api_response_ok)
         configure_mock_urlopen(mock_urlopen, graphql_response_missing_required_fields)
         mock_post.return_value.status_code = 200
         mock_post.return_value.json = access_token
-        response = report.handler()
+        response = report.handler({"emails": ["aa@gmail.com"]})
         assert response['statusCode'] == 500
 
 
@@ -222,10 +236,11 @@ def test_headers_and_query(mock_urlopen, kms):
 
     with patch('reporting.report.requests.post') as mock_post:
         set_up(kms)
+        setup_slack_api(slack_api_response_ok)
         configure_mock_urlopen(mock_urlopen, graphql_response_ok)
         mock_post.return_value.status_code = 200
         mock_post.return_value.json = access_token
-        report.handler()
+        report.handler({"emails": ["aa@gmail.com"]})
         headers = {'Authorization': f'Bearer {access_token()["access_token"]}'}
         check_mock_urlopen(mock_urlopen, base_headers=headers)
 
@@ -236,6 +251,7 @@ def test_http_server_error(mock_urlopen, kms):
 
     with patch('reporting.report.requests.post') as mock_post:
         set_up(kms)
+        setup_slack_api(slack_api_response_ok)
 
         err = urllib.error.HTTPError(
             'http://testserver.com',
@@ -247,5 +263,62 @@ def test_http_server_error(mock_urlopen, kms):
         configure_mock_urlopen(mock_urlopen, err)
         mock_post.return_value.status_code = 200
         mock_post.return_value.json = access_token
-        response = report.handler()
+        response = report.handler({"emails": ["aa@gmail.com"]})
         assert response['statusCode'] == 500
+
+
+@patch('urllib.request.urlopen')
+def test_slack_auth_token_is_not_valid(mock_urlopen, kms):
+    """Test if slack token is invalid"""
+
+    with patch('reporting.report.requests.post') as mock_post:
+        set_up(kms)
+        setup_slack_api(slack_api_response_invalid)
+        configure_mock_urlopen(mock_urlopen, graphql_response_ok)
+        mock_post.return_value.status_code = 200
+        mock_post.return_value.json = access_token
+        response = report.handler({"emails": ["aa@gmail.com"]})
+        assert response['statusCode'] == 401
+
+
+@patch('urllib.request.urlopen')
+def test_multiple_emails_are_passed(mock_urlopen, kms):
+    """Test if multiple emails are passed"""
+
+    with patch('reporting.report.requests.post') as mock_post:
+        set_up(kms)
+        setup_slack_api(slack_api_response_ok)
+        configure_mock_urlopen(mock_urlopen, graphql_response_ok)
+        mock_post.return_value.status_code = 200
+        mock_post.return_value.json = access_token
+        report.handler({"emails": ["aa@gmail.com", "bb@gmail.com"]})
+        headers = {'Authorization': f'Bearer {access_token()["access_token"]}'}
+        check_mock_urlopen(mock_urlopen, base_headers=headers)
+
+
+@patch('urllib.request.urlopen')
+def test_when_no_emails_are_passed(mock_urlopen, kms):
+    """Test when no emails are passed then it should not slack the report"""
+
+    with patch('reporting.report.requests.post') as mock_post:
+        set_up(kms)
+        configure_mock_urlopen(mock_urlopen, graphql_response_ok)
+        mock_post.return_value.status_code = 200
+        mock_post.return_value.json = access_token
+        report.handler()
+        df = pandas.read_csv(csv_file_path)
+        assert len(df) == 1
+
+
+@patch('urllib.request.urlopen')
+def test_when_empty_email_list_are_passed(mock_urlopen, kms):
+    """Test when empty emails list are passed then it should not slack the report"""
+
+    with patch('reporting.report.requests.post') as mock_post:
+        set_up(kms)
+        configure_mock_urlopen(mock_urlopen, graphql_response_ok)
+        mock_post.return_value.status_code = 200
+        mock_post.return_value.json = access_token
+        report.handler({"emails": []})
+        df = pandas.read_csv(csv_file_path)
+        assert len(df) == 1

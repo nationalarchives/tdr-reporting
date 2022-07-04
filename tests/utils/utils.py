@@ -1,10 +1,7 @@
 import base64
+import json
 import os
-
-extra_accept_header = ', '.join([
-    'application/json; charset=utf-8',
-    'application/vnd.xyz.feature-flag+json',
-])
+import httpretty
 
 
 def encrypt(key, kms, value):
@@ -28,7 +25,25 @@ def set_up(kms):
     os.environ["CLIENT_ID"] = "tdr-reporting"
     os.environ['CLIENT_SECRET'] = encrypt(kms_key, kms, "client-secret")
     os.environ['AWS_DEFAULT_REGION'] = 'eu-west-2'
+    os.environ['SLACK_BOT_TOKEN'] = encrypt(kms_key, kms, "slack_token")
 
 
 def access_token():
     return {'access_token': 'ABCD'}
+
+
+def setup_slack_api(response):
+    httpretty.register_uri(
+        httpretty.POST,
+        'https://www.slack.com/api/users.lookupByEmail',
+        adding_headers={},
+        body=json.dumps(response),
+        status=200
+    )
+    httpretty.register_uri(
+        httpretty.POST,
+        'https://www.slack.com/api/files.upload',
+        adding_headers={},
+        body=json.dumps({'ok': 'true'}),
+        status=200
+    )

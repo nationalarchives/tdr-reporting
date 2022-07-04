@@ -11,8 +11,12 @@ import csv
 import boto3
 import os
 
-csv_file_dir = "../generated_report/"
-csv_file_name = "report.csv"
+from slack_sdk.errors import SlackApiError
+
+from reporting import default_report_type
+from reporting.slack import slack
+
+csv_file_path = "/tmp/report.csv"
 
 
 def decode(env_var_name):
@@ -20,12 +24,6 @@ def decode(env_var_name):
     decoded = client.decrypt(CiphertextBlob=b64decode(os.environ[env_var_name]),
                              EncryptionContext={"LambdaFunctionName": os.environ["AWS_LAMBDA_FUNCTION_NAME"]})
     return decoded["Plaintext"].decode("utf-8")
-
-
-def create_directory():
-    dir_path = '../generated_report'
-    if not os.path.isdir(dir_path):
-        os.makedirs(dir_path)
 
 
 class FileMetadata(Type):
@@ -74,13 +72,12 @@ class Query(Type):
     consignments = Field(Consignments, args={'limit': int, 'currentCursor': str})
 
 
-def get_token():
+def get_token(client_secret):
     client_id = os.environ["CLIENT_ID"]
-    client_secret = decode("CLIENT_SECRET")
     auth_url = f'{os.environ["AUTH_URL"]}/realms/tdr/protocol/openid-connect/token'
     grant_type = {"grant_type": "client_credentials"}
     auth_response = requests.post(auth_url, data=grant_type, auth=(client_id, client_secret))
-    print(auth_response.status_code)
+    print("Auth response", auth_response.status_code)
     return auth_response.json()['access_token']
 
 
@@ -105,61 +102,46 @@ def get_query(cursor=None):
     return operation
 
 
-def node_to_dict(node):
-    return {
-        "ConsignmentReference": node.consignmentReference,
-        "ConsignmentType": node.consignmentType,
-        "TransferringBodyName": node.transferringBody.name,
-        "BodyCode": node.transferringBody.tdrCode,
-        "SeriesCode": node.series.code if hasattr(node.series, 'code') else '',
-        "ConsignmentId": node.consignmentid,
-        "UserId": node.userid,
-        "CreatedDateTime": node.createdDatetime,
-        "TransferInitiatedDatetime": node.transferInitiatedDatetime if hasattr(node,
-                                                                               'transferInitiatedDatetime') else '',
-        "ExportDateTime": node.exportDatetime,
-        "ExportLocation": node.exportLocation,
-        "FileCount": len(node.files),
-        "TotalSize(Bytes)": 0 if not node.files else sum(
-            filter(None, (item.metadata.clientSideFileSize for item in node.files)))
-    }
-
-
-def generate_report():
+def generate_report(event):
     api_url = f'{os.environ["CONSIGNMENT_API_URL"]}/graphql'
     all_consignments = []
     has_next_page = True
     current_cursor = None
+    client_secret = decode("CLIENT_SECRET")
     while has_next_page:
         query = get_query(current_cursor)
-        headers = {'Authorization': f'Bearer {get_token()}'}
+        headers = {'Authorization': f'Bearer {get_token(client_secret)}'}
         endpoint = HTTPEndpoint(api_url, headers, 300)
         data = endpoint(query)
         if 'errors' in data:
-            raise Exception("Invalid data response", data['errors'])
+            raise Exception("Error in response", data['errors'])
 
         consignments = (query + data).consignments
         has_next_page = consignments.page_info.has_next_page
-        consignments_dict = [node_to_dict(edge.node) for edge in consignments.edges]
+        consignments_dict = [default_report_type.node_to_dict(edge.node) for edge in consignments.edges]
         all_consignments.extend(consignments_dict)
         current_cursor = consignments.edges[-1].cursor if len(consignments.edges) > 0 else None
         print("Total consignments: ", len(all_consignments))
 
-    create_directory()
-    with open(csv_file_dir + csv_file_name, 'w', newline='') as csvfile:
-        fieldnames = [
-            "ConsignmentReference", "ConsignmentType", "TransferringBodyName", "BodyCode",
-            "SeriesCode", "ConsignmentId", "UserId", "CreatedDateTime", "TransferInitiatedDatetime", "ExportDateTime",
-            "ExportLocation", "FileCount", "TotalSize(Bytes)"]
-        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+    with open(csv_file_path, 'w', newline='') as csvfile:
+
+        writer = csv.DictWriter(csvfile, fieldnames=default_report_type.fieldnames)
         writer.writeheader()
         writer.writerows(all_consignments)
+
+    if event is not None and len(event['emails']) > 0:
+        slack(event['emails'], csv_file_path, decode("SLACK_BOT_TOKEN"))
 
 
 # noinspection PyBroadException
 def handler(event=None, context=None):
     try:
-        generate_report()
+        generate_report(event)
+    except SlackApiError as e:
+        return {
+            "statusCode": 401,
+            "Error": str(e)
+        }
     except Exception:
         traceback.print_exc()
         return {

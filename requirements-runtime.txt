@@ -4,3 +4,4 @@ cffi
 requests
 sgqlc
 boto3
+slack_sdk

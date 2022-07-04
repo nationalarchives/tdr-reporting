@@ -1,0 +1,30 @@
+name: TDR Run Lambda function
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment'
+        required: true
+        type: string
+permissions:
+  id-token: write
+  contents: write
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - id: role-name
+        run: print(f"::set-output name=role-name::TDRGithubActionsDeployLambda{'${{ inputs.environment }}'.title()}")
+        shell: python
+      - name: Configure AWS credentials for Lambda
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.ACCOUNT_NUMBER }}:role/${{ steps.role-name.outputs.role-name }}
+          aws-region: eu-west-2
+          role-session-name: ECRLogin
+      - name: run lambda function
+        run: |
+          aws lambda invoke --function-name tdr-reporting-${{ inputs.environment }} --cli-binary-format raw-in-base64-out --payload '{}' response.json
