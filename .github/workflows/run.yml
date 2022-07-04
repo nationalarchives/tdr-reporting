@@ -6,6 +6,10 @@ on:
         description: 'Environment'
         required: true
         type: string
+      emails:
+        description: 'Emails'
+        required: false
+        type: string
 permissions:
   id-token: write
   contents: write
@@ -27,4 +31,4 @@ jobs:
           role-session-name: ECRLogin
       - name: run lambda function
         run: |
-          aws lambda invoke --function-name tdr-reporting-${{ inputs.environment }} --cli-binary-format raw-in-base64-out --payload '{}' response.json
+          aws lambda invoke --function-name tdr-reporting-${{ inputs.environment }} --cli-binary-format raw-in-base64-out --payload '{"emails": ${{ inputs.emails }}}' response.json
