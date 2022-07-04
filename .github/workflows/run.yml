@@ -8,7 +8,7 @@ on:
         type: string
         default: 'intg'
       emails:
-        description: 'Emails'
+        description: 'Emails (in double quote)'
         required: false
         type: string
 permissions:
