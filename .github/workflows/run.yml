@@ -7,6 +7,11 @@ on:
         required: true
         type: string
         default: 'intg'
+      reportType:
+        description: 'Report type'
+        required: true
+        type: string
+        default: 'standard'
       emails:
         description: 'Emails (in double quote)'
         required: false
@@ -32,4 +37,4 @@ jobs:
           role-session-name: ECRLogin
       - name: run lambda function
         run: |
-          aws lambda invoke --function-name tdr-reporting-${{ inputs.environment }} --cli-binary-format raw-in-base64-out --payload '{"emails": [${{ inputs.emails }}]}' response.json
+          aws lambda invoke --function-name tdr-reporting-${{ inputs.environment }} --cli-binary-format raw-in-base64-out --payload '{"emails": [${{ inputs.emails }}],"reportyType": "${{ inputs.reportType }}"}' response.json
