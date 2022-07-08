@@ -1,19 +1,17 @@
+import csv
+import os
 import traceback
-
-from sgqlc.endpoint.http import HTTPEndpoint
-from sgqlc.types import Type, Field, list_of
-from sgqlc.types.relay import Connection
-from sgqlc.operation import Operation
 from base64 import b64decode
 
-import requests
-import csv
 import boto3
-import os
-
+import requests
+from sgqlc.endpoint.http import HTTPEndpoint
+from sgqlc.operation import Operation
+from sgqlc.types import Type, Field
 from slack_sdk.errors import SlackApiError
 
 from . import default_report_type
+from .model import Consignments
 from .slack import slack
 
 csv_file_path = "/tmp/report.csv"
@@ -24,48 +22,6 @@ def decode(env_var_name):
     decoded = client.decrypt(CiphertextBlob=b64decode(os.environ[env_var_name]),
                              EncryptionContext={"LambdaFunctionName": os.environ["AWS_LAMBDA_FUNCTION_NAME"]})
     return decoded["Plaintext"].decode("utf-8")
-
-
-class FileMetadata(Type):
-    clientSideFileSize = Field(int)
-
-
-class File(Type):
-    fileId = Field(str)
-    metadata = Field(FileMetadata)
-
-
-class TransferringBody(Type):
-    name = Field(str)
-    tdrCode = Field(str)
-
-
-class Series(Type):
-    code = Field(str)
-    name = Field(str)
-
-
-class Consignment(Type):
-    consignmentid = Field(str)
-    consignmentType = Field(str)
-    consignmentReference = Field(str)
-    userid = Field(str)
-    exportDatetime = Field(str)
-    exportLocation = Field(str)
-    createdDatetime = Field(str)
-    transferInitiatedDatetime = Field(str)
-    files = list_of(File)
-    transferringBody = Field(TransferringBody)
-    series = Field(Series)
-
-
-class Edge(Type):
-    node = Field(Consignment)
-    cursor = Field(str)
-
-
-class Consignments(Connection):
-    edges = list_of(Edge)
 
 
 class Query(Type):

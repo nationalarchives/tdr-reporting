@@ -21,7 +21,7 @@ You need to also setup following environment variables if you are running from I
 1. AUTH_URL - For authentication. ie. `https://auth.tdr-{environment}.nationalarchives.gov.uk`
 2. AWS_LAMBDA_FUNCTION_NAME - Use reporting lambda function name. ie. `tdr-reporting-{environment}`
 3. CLIENT_ID - It should be `tdr-reporting`
-4. CLIENT_SECRET - It should be encrypted client secret of `tdr-reporting` user
+4. CLIENT_SECRET - It should be encrypted `tdr-reporting` client secret
 5. CONSIGNMENT_API_URL - Consignment API base url (https://api.tdr-{environment}.nationalarchives.gov.uk). If you are running locally then it should be `http://localhost:8080`.
 6. AWS_DEFAULT_REGION -  AWS region `eu-west-2`
 

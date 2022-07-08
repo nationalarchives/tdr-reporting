@@ -175,7 +175,7 @@ def kms():
 @httpretty.activate(allow_net_connect=False)
 @patch('urllib.request.urlopen')
 def test_report_with_valid_response(mock_urlopen, kms):
-    """Test if it generates report.csv with valid graphql response"""
+    """Test if report.csv generated with valid graphql response"""
 
     with patch('reporting.report.requests.post') as mock_post:
         set_up(kms)
@@ -204,7 +204,7 @@ def test_report_with_valid_response(mock_urlopen, kms):
 
 @patch('urllib.request.urlopen')
 def test_json_error(mock_urlopen, kms):
-    """Test if broken server responses (invalid JSON) is handled"""
+    """Test if broken server response (invalid JSON) is handled"""
 
     with patch('reporting.report.requests.post') as mock_post:
         set_up(kms)
@@ -218,7 +218,7 @@ def test_json_error(mock_urlopen, kms):
 
 @patch('urllib.request.urlopen')
 def test_missing_required_field(mock_urlopen, kms):
-    """Test if incorrect server responses (missing required fields) is handled"""
+    """Test if incorrect server response (missing required fields) is handled"""
 
     with patch('reporting.report.requests.post') as mock_post:
         set_up(kms)
@@ -269,7 +269,7 @@ def test_http_server_error(mock_urlopen, kms):
 
 @patch('urllib.request.urlopen')
 def test_slack_auth_token_is_not_valid(mock_urlopen, kms):
-    """Test if slack token is invalid"""
+    """Test if 401 error returned if slack token is invalid"""
 
     with patch('reporting.report.requests.post') as mock_post:
         set_up(kms)
@@ -298,7 +298,7 @@ def test_multiple_emails_are_passed(mock_urlopen, kms):
 
 @patch('urllib.request.urlopen')
 def test_when_no_emails_are_passed(mock_urlopen, kms):
-    """Test when no emails are passed then it should not slack the report"""
+    """Test no slack message sent where no email addresses are provided"""
 
     with patch('reporting.report.requests.post') as mock_post:
         set_up(kms)
@@ -312,7 +312,7 @@ def test_when_no_emails_are_passed(mock_urlopen, kms):
 
 @patch('urllib.request.urlopen')
 def test_when_empty_email_list_are_passed(mock_urlopen, kms):
-    """Test when empty emails list are passed then it should not slack the report"""
+    """Test no slack message sent when empty email address list is provided"""
 
     with patch('reporting.report.requests.post') as mock_post:
         set_up(kms)

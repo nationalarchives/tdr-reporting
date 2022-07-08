@@ -1,4 +1,4 @@
-name: TDR Run Lambda function
+name: TDR Run Reporting
 on:
   workflow_dispatch:
     inputs:
