@@ -1,0 +1,5 @@
+pandas
+pytest
+moto
+nose
+httpretty

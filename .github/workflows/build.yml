@@ -1,0 +1,30 @@
+name: TDR Tag and pre deploy
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+jobs:
+  pre-deploy:
+    uses: nationalarchives/tdr-github-actions/.github/workflows/lambda_build.yml@main
+    with:
+      repo-name: tdr-reporting
+      artifact-name: function
+      artifact-file-type: zip
+      artifact-path: lambda
+      build-command: |
+        mkdir lambda
+        docker build -t function .
+        docker run -itd --rm --name function function
+        docker cp function:/lambda/function.zip lambda/
+    secrets:
+      MANAGEMENT_ACCOUNT: ${{ secrets.MANAGEMENT_ACCOUNT }}
+      WORKFLOW_PAT: ${{ secrets.WORKFLOW_PAT }}
+  deploy:
+    needs: pre-deploy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: gh workflow run deploy.yml -f environment=intg -f to-deploy=${{ needs.pre-deploy.outputs.next-version }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.WORKFLOW_PAT }}
