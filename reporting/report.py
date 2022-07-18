@@ -58,12 +58,22 @@ def get_query(cursor=None):
     return operation
 
 
+def get_client_secret():
+    client_secret_path = os.environ["CLIENT_SECRET_PATH"]
+    ssm_client = boto3.client("ssm")
+    response = ssm_client.get_parameter(
+        Name=client_secret_path,
+        WithDecryption=True
+    )
+    return response["Parameter"]["Value"]
+
+
 def generate_report(event):
     api_url = f'{os.environ["CONSIGNMENT_API_URL"]}/graphql'
     all_consignments = []
     has_next_page = True
     current_cursor = None
-    client_secret = decode("CLIENT_SECRET")
+    client_secret = get_client_secret()
     while has_next_page:
         query = get_query(current_cursor)
         headers = {'Authorization': f'Bearer {get_token(client_secret)}'}
