@@ -26,6 +26,17 @@ def set_up(kms):
     os.environ['CLIENT_SECRET'] = encrypt(kms_key, kms, "client-secret")
     os.environ['AWS_DEFAULT_REGION'] = 'eu-west-2'
     os.environ['SLACK_BOT_TOKEN'] = encrypt(kms_key, kms, "slack_token")
+    os.environ['CLIENT_SECRET_PATH'] = "/test/client/secret"
+
+
+def setup_ssm(ssm):
+    ssm.put_parameter(
+        Name="/test/client/secret",
+        Description="description",
+        Value="client-secret",
+        Type="SecureString",
+        Overwrite=True,
+    )
 
 
 def access_token():

@@ -4,3 +4,4 @@ target
 venv
 .pytest_cache
 report.csv
+__pycache__

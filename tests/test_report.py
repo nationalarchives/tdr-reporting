@@ -6,7 +6,7 @@ import boto3
 import pandas as pandas
 import pandas as pd
 import pytest
-from moto import mock_kms
+from moto import mock_kms, mock_ssm
 from nose.tools import eq_
 
 from reporting import report
@@ -172,13 +172,20 @@ def kms():
         yield boto3.client('kms', region_name='eu-west-2')
 
 
+@pytest.fixture(scope='function')
+def ssm():
+    with mock_ssm():
+        yield boto3.client('ssm', region_name='eu-west-2')
+
+
 @httpretty.activate(allow_net_connect=False)
 @patch('urllib.request.urlopen')
-def test_report_with_valid_response(mock_urlopen, kms):
+def test_report_with_valid_response(mock_urlopen, kms, ssm):
     """Test if report.csv generated with valid graphql response"""
 
     with patch('reporting.report.requests.post') as mock_post:
         set_up(kms)
+        setup_ssm(ssm)
         setup_slack_api(slack_api_response_ok)
         configure_mock_urlopen(mock_urlopen, graphql_response_ok)
         mock_post.return_value.status_code = 200
@@ -203,7 +210,7 @@ def test_report_with_valid_response(mock_urlopen, kms):
 
 
 @patch('urllib.request.urlopen')
-def test_json_error(mock_urlopen, kms):
+def test_json_error(mock_urlopen, kms, ssm):
     """Test if broken server response (invalid JSON) is handled"""
 
     with patch('reporting.report.requests.post') as mock_post:
@@ -217,7 +224,7 @@ def test_json_error(mock_urlopen, kms):
 
 
 @patch('urllib.request.urlopen')
-def test_missing_required_field(mock_urlopen, kms):
+def test_missing_required_field(mock_urlopen, kms, ssm):
     """Test if incorrect server response (missing required fields) is handled"""
 
     with patch('reporting.report.requests.post') as mock_post:
@@ -231,11 +238,12 @@ def test_missing_required_field(mock_urlopen, kms):
 
 
 @patch('urllib.request.urlopen')
-def test_headers_and_query(mock_urlopen, kms):
+def test_headers_and_query(mock_urlopen, kms, ssm):
     """Test if all headers, query and standard timeout are passed"""
 
     with patch('reporting.report.requests.post') as mock_post:
         set_up(kms)
+        setup_ssm(ssm)
         setup_slack_api(slack_api_response_ok)
         configure_mock_urlopen(mock_urlopen, graphql_response_ok)
         mock_post.return_value.status_code = 200
@@ -246,11 +254,12 @@ def test_headers_and_query(mock_urlopen, kms):
 
 
 @patch('urllib.request.urlopen')
-def test_http_server_error(mock_urlopen, kms):
+def test_http_server_error(mock_urlopen, kms, ssm):
     """Test if HTTP error without JSON payload is handled"""
 
     with patch('reporting.report.requests.post') as mock_post:
         set_up(kms)
+        setup_ssm(ssm)
         setup_slack_api(slack_api_response_ok)
 
         err = urllib.error.HTTPError(
@@ -268,11 +277,12 @@ def test_http_server_error(mock_urlopen, kms):
 
 
 @patch('urllib.request.urlopen')
-def test_slack_auth_token_is_not_valid(mock_urlopen, kms):
+def test_slack_auth_token_is_not_valid(mock_urlopen, kms, ssm):
     """Test if 401 error returned if slack token is invalid"""
 
     with patch('reporting.report.requests.post') as mock_post:
         set_up(kms)
+        setup_ssm(ssm)
         setup_slack_api(slack_api_response_invalid)
         configure_mock_urlopen(mock_urlopen, graphql_response_ok)
         mock_post.return_value.status_code = 200
@@ -282,11 +292,12 @@ def test_slack_auth_token_is_not_valid(mock_urlopen, kms):
 
 
 @patch('urllib.request.urlopen')
-def test_multiple_emails_are_passed(mock_urlopen, kms):
+def test_multiple_emails_are_passed(mock_urlopen, kms, ssm):
     """Test if multiple emails are passed"""
 
     with patch('reporting.report.requests.post') as mock_post:
         set_up(kms)
+        setup_ssm(ssm)
         setup_slack_api(slack_api_response_ok)
         configure_mock_urlopen(mock_urlopen, graphql_response_ok)
         mock_post.return_value.status_code = 200
@@ -297,11 +308,12 @@ def test_multiple_emails_are_passed(mock_urlopen, kms):
 
 
 @patch('urllib.request.urlopen')
-def test_when_no_emails_are_passed(mock_urlopen, kms):
+def test_when_no_emails_are_passed(mock_urlopen, kms, ssm):
     """Test no slack message sent where no email addresses are provided"""
 
     with patch('reporting.report.requests.post') as mock_post:
         set_up(kms)
+        setup_ssm(ssm)
         configure_mock_urlopen(mock_urlopen, graphql_response_ok)
         mock_post.return_value.status_code = 200
         mock_post.return_value.json = access_token
@@ -311,11 +323,12 @@ def test_when_no_emails_are_passed(mock_urlopen, kms):
 
 
 @patch('urllib.request.urlopen')
-def test_when_empty_email_list_are_passed(mock_urlopen, kms):
+def test_when_empty_email_list_are_passed(mock_urlopen, kms, ssm):
     """Test no slack message sent when empty email address list is provided"""
 
     with patch('reporting.report.requests.post') as mock_post:
         set_up(kms)
+        setup_ssm(ssm)
         configure_mock_urlopen(mock_urlopen, graphql_response_ok)
         mock_post.return_value.status_code = 200
         mock_post.return_value.json = access_token
