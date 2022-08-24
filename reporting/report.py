@@ -10,7 +10,7 @@ from sgqlc.operation import Operation
 from sgqlc.types import Type, Field
 from slack_sdk.errors import SlackApiError
 
-from . import default_report_type
+from .report_types import DefaultReport, CaseLawReport
 from .model import Consignments
 from .slack import slack
 
@@ -69,6 +69,11 @@ def get_client_secret():
 
 
 def generate_report(event):
+    report_type = DefaultReport()
+    if event is not None and "report" in event:
+        if event["report"] == "caselaw":
+            report_type = CaseLawReport()
+
     api_url = f'{os.environ["CONSIGNMENT_API_URL"]}/graphql'
     all_consignments = []
     has_next_page = True
@@ -84,14 +89,15 @@ def generate_report(event):
 
         consignments = (query + data).consignments
         has_next_page = consignments.page_info.has_next_page
-        consignments_dict = [default_report_type.node_to_dict(edge.node) for edge in consignments.edges]
+        consignments_dict = [report_type.node_to_dict(edge.node) for edge in consignments.edges
+                             if report_type.edge_filter(edge)]
         all_consignments.extend(consignments_dict)
         current_cursor = consignments.edges[-1].cursor if len(consignments.edges) > 0 else None
         print("Total consignments: ", len(all_consignments))
 
     with open(csv_file_path, 'w', newline='') as csvfile:
 
-        writer = csv.DictWriter(csvfile, fieldnames=default_report_type.fieldnames)
+        writer = csv.DictWriter(csvfile, fieldnames=report_type.fieldnames)
         writer.writeheader()
         writer.writerows(all_consignments)
 
