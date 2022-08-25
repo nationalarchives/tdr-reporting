@@ -3,14 +3,21 @@ on:
   workflow_dispatch:
     inputs:
       environment:
-        description: 'Environment'
+        description: 'Environment: Choose prod for live data'
         required: true
-        type: string
+        type: choice
+        options:
+          - intg
+          - staging
+          - prod
         default: 'intg'
       reportType:
         description: 'Report type'
         required: true
-        type: string
+        type: choice
+        options:
+          - standard
+          - caselaw
         default: 'standard'
       emails:
         description: 'Emails (in double quote)'
@@ -37,4 +44,4 @@ jobs:
           role-session-name: ECRLogin
       - name: run lambda function
         run: |
-          aws lambda invoke --function-name tdr-reporting-${{ inputs.environment }} --cli-binary-format raw-in-base64-out --payload '{"emails": [${{ inputs.emails }}],"reportyType": "${{ inputs.reportType }}"}' response.json
+          aws lambda invoke --function-name tdr-reporting-${{ inputs.environment }} --cli-binary-format raw-in-base64-out --payload '{"emails": [${{ inputs.emails }}],"reportType": "${{ inputs.reportType }}"}' response.json

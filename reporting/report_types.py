@@ -2,7 +2,7 @@ class Report:
     pass
 
 
-class DefaultReport(Report):
+class StandardReport(Report):
     def __init__(self):
         self.fieldnames = [
             "ConsignmentReference", "ConsignmentType", "TransferringBodyName", "BodyCode",

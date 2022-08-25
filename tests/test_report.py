@@ -98,7 +98,7 @@ slack_api_response_invalid = {
     "error": "invalid_auth"
 }
 
-reports = ["default", "caselaw"]
+reports = ["standard", "caselaw"]
 
 
 def configure_mock_urlopen(mock_urlopen, payload):
@@ -180,7 +180,7 @@ def ssm():
         yield boto3.client('ssm', region_name='eu-west-2')
 
 
-def check_default_report(df):
+def check_standard_report(df):
     assert len(df) == 1
     assert len(df.columns) == 13
     assert df['ConsignmentReference'][0] == 'TDR-2022-C'
@@ -223,10 +223,10 @@ def test_report_with_valid_response(mock_urlopen, kms, ssm, report_type):
         mock_post.return_value.status_code = 200
         mock_post.return_value.json = access_token
         remove_csv()
-        report.handler({"emails": ["aa@gmail.com"], "report": report_type})
+        report.handler({"emails": ["aa@gmail.com"], "reportType": report_type})
         df = pandas.read_csv(csv_file_path)
-        if report_type == "default":
-            check_default_report(df)
+        if report_type == "standard":
+            check_standard_report(df)
         elif report_type == "caselaw":
             check_caselaw_report(df)
 
@@ -242,7 +242,7 @@ def test_json_error(mock_urlopen, kms, ssm, report_type):
         configure_mock_urlopen(mock_urlopen, graphql_response_json_error)
         mock_post.return_value.status_code = 200
         mock_post.return_value.json = access_token
-        response = report.handler({"emails": ["aa@gmail.com"], "report": report_type})
+        response = report.handler({"emails": ["aa@gmail.com"], "reportType": report_type})
         assert response['statusCode'] == 500
 
 
@@ -257,7 +257,7 @@ def test_missing_required_field(mock_urlopen, kms, ssm, report_type):
         configure_mock_urlopen(mock_urlopen, graphql_response_missing_required_fields)
         mock_post.return_value.status_code = 200
         mock_post.return_value.json = access_token
-        response = report.handler({"emails": ["aa@gmail.com"], "report": report_type})
+        response = report.handler({"emails": ["aa@gmail.com"], "reportType": report_type})
         assert response['statusCode'] == 500
 
 
@@ -273,7 +273,7 @@ def test_headers_and_query(mock_urlopen, kms, ssm, report_type):
         configure_mock_urlopen(mock_urlopen, graphql_response_ok)
         mock_post.return_value.status_code = 200
         mock_post.return_value.json = access_token
-        report.handler({"emails": ["aa@gmail.com"], "report": report_type})
+        report.handler({"emails": ["aa@gmail.com"], "reportType": report_type})
         headers = {'Authorization': f'Bearer {access_token()["access_token"]}'}
         check_mock_urlopen(mock_urlopen, base_headers=headers)
 
@@ -298,7 +298,7 @@ def test_http_server_error(mock_urlopen, kms, ssm, report_type):
         configure_mock_urlopen(mock_urlopen, err)
         mock_post.return_value.status_code = 200
         mock_post.return_value.json = access_token
-        response = report.handler({"emails": ["aa@gmail.com"], "report": report_type})
+        response = report.handler({"emails": ["aa@gmail.com"], "reportType": report_type})
         assert response['statusCode'] == 500
 
 
@@ -314,7 +314,7 @@ def test_slack_auth_token_is_not_valid(mock_urlopen, kms, ssm, report_type):
         configure_mock_urlopen(mock_urlopen, graphql_response_ok)
         mock_post.return_value.status_code = 200
         mock_post.return_value.json = access_token
-        response = report.handler({"emails": ["aa@gmail.com"], "report": report_type})
+        response = report.handler({"emails": ["aa@gmail.com"], "reportType": report_type})
         assert response['statusCode'] == 401
 
 
@@ -330,7 +330,7 @@ def test_multiple_emails_are_passed(mock_urlopen, kms, ssm, report_type):
         configure_mock_urlopen(mock_urlopen, graphql_response_ok)
         mock_post.return_value.status_code = 200
         mock_post.return_value.json = access_token
-        report.handler({"emails": ["aa@gmail.com", "bb@gmail.com"], "report": report_type})
+        report.handler({"emails": ["aa@gmail.com", "bb@gmail.com"], "reportType": report_type})
         headers = {'Authorization': f'Bearer {access_token()["access_token"]}'}
         check_mock_urlopen(mock_urlopen, base_headers=headers)
 
@@ -346,7 +346,7 @@ def test_when_no_emails_are_passed(mock_urlopen, kms, ssm, report_type):
         configure_mock_urlopen(mock_urlopen, graphql_response_ok)
         mock_post.return_value.status_code = 200
         mock_post.return_value.json = access_token
-        report.handler({"report": report_type})
+        report.handler({"reportType": report_type})
         df = pandas.read_csv(csv_file_path)
         assert len(df) == 1
 
@@ -362,7 +362,7 @@ def test_when_empty_email_list_are_passed(mock_urlopen, kms, ssm, report_type):
         configure_mock_urlopen(mock_urlopen, graphql_response_ok)
         mock_post.return_value.status_code = 200
         mock_post.return_value.json = access_token
-        report.handler({"emails": [], "report": report_type})
+        report.handler({"emails": [], "reportType": report_type})
         df = pandas.read_csv(csv_file_path)
         assert len(df) == 1
 
@@ -379,4 +379,4 @@ def test_when_no_report_is_passed(mock_urlopen, kms, ssm):
         mock_post.return_value.json = access_token
         report.handler({"emails": []})
         df = pandas.read_csv(csv_file_path)
-        check_default_report(df)
+        check_standard_report(df)

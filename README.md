@@ -15,8 +15,8 @@ python -m pytest
 
 ### Running different report types.
 There are two different reports available.
-* Default - this is the service owner report which gives a detailed report of all consignments.
-* CaseLaw - this is a summary report with fewer fields than the default report and is only for judgment consignments.
+* Standard - this is the service owner report which gives a detailed report of all consignments.
+* CaseLaw - this is a summary report with fewer fields than the standard report and is only for judgment consignments.
 
 ### Running the report locally
 This report needs AWS credentials with SSM access to work. These can be set with environment variables, in `~/.aws/credentials` or using sso profiles.
@@ -30,7 +30,7 @@ You need to also setup following environment variables if you are running from I
 5. CONSIGNMENT_API_URL - Consignment API base url (https://api.tdr-{environment}.nationalarchives.gov.uk). If you are running locally then it should be `http://localhost:8080`.
 6. AWS_DEFAULT_REGION -  AWS region `eu-west-2`
 
-You will need to provide a report type as the first argument, either default or caselaw.
+You will need to provide a report type as the first argument, either standard or caselaw.
 
 Once these are set you can run report_runner.py from IntelliJ IDEA or run with following command:
 ```bash

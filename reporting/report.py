@@ -10,7 +10,7 @@ from sgqlc.operation import Operation
 from sgqlc.types import Type, Field
 from slack_sdk.errors import SlackApiError
 
-from .report_types import DefaultReport, CaseLawReport
+from .report_types import StandardReport, CaseLawReport
 from .model import Consignments
 from .slack import slack
 
@@ -69,9 +69,9 @@ def get_client_secret():
 
 
 def generate_report(event):
-    report_type = DefaultReport()
-    if event is not None and "report" in event:
-        if event["report"] == "caselaw":
+    report_type = StandardReport()
+    if event is not None and "reportType" in event:
+        if event["reportType"] == "caselaw":
             report_type = CaseLawReport()
 
     api_url = f'{os.environ["CONSIGNMENT_API_URL"]}/graphql'
