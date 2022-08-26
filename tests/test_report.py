@@ -369,7 +369,7 @@ def test_when_empty_email_list_are_passed(mock_urlopen, kms, ssm, report_type):
 
 @patch('urllib.request.urlopen')
 def test_when_no_report_is_passed(mock_urlopen, kms, ssm):
-    """Test no slack message sent when empty email address list is provided"""
+    """Test should run the standard report only if no reportType is provided"""
 
     with patch('reporting.report.requests.post') as mock_post:
         set_up(kms)
