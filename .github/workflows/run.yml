@@ -33,10 +33,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - id: role-name
-        run: print(f"::set-output name=role-name::TDRGithubActionsDeployLambda{'${{ inputs.environment }}'.title()}")
+        run: |
+          import os
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
+            print(f"role-name=TDRGithubActionsDeployLambda{'${{ inputs.environment }}'.title()}", file=fh)
         shell: python
       - id: account-number-secret-name
-        run: print(f"::set-output name=account-number-secret-name::{'${{ inputs.environment }}'.upper()}_ACCOUNT_NUMBER")
+        run: |
+          import os
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
+            print(f"account-number-secret-name={'${{ inputs.environment }}'.upper()}_ACCOUNT_NUMBER", file=fh)
         shell: python
       - name: Configure AWS credentials for Lambda
         uses: aws-actions/configure-aws-credentials@v1
