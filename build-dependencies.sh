@@ -1,7 +1,6 @@
 #!/bin/bash
 yum install -y wget zip
-yum install -y amazon-linux-extras
-amazon-linux-extras install python3.8
+yum install -y python37
 python3.8 -m ensurepip --upgrade
 
 mkdir /pip
