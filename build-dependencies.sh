@@ -1,10 +1,10 @@
 #!/bin/bash
 yum install -y wget zip
-yum install -y python37
-python3.8 -m ensurepip --upgrade
+yum install -y python3.11
+python3.11 -m ensurepip --upgrade
 
 mkdir /pip
-pip3.8 install --requirement requirements.txt --target /pip
+pip3.11 install --requirement requirements.txt --target /pip
 
 cd /pip
 rm -r *.dist-info
