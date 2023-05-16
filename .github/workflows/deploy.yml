@@ -3,8 +3,13 @@ on:
   workflow_dispatch:
     inputs:
       environment:
+        type: choice
         description: 'Environment'
         required: true
+        options:
+          - intg
+          - staging
+          - prod
         default: 'intg'
       to-deploy:
         description: 'Version to deploy'
