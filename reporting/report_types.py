@@ -16,7 +16,7 @@ class StandardReport(Report):
             "ConsignmentType": node.consignmentType,
             "TransferringBodyName": node.transferringBody.name,
             "BodyCode": node.transferringBody.tdrCode,
-            "SeriesCode": node.series.code if hasattr(node.series, 'code') else '',
+            "SeriesCode": node.seriesName,
             "ConsignmentId": node.consignmentid,
             "UserId": node.userid,
             "CreatedDateTime": node.createdDatetime,
