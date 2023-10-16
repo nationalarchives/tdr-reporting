@@ -32,7 +32,7 @@ class Consignment(Type):
     transferInitiatedDatetime = Field(str)
     files = list_of(File)
     transferringBody = Field(TransferringBody)
-    series = Field(Series)
+    seriesName = Field(str)
 
 
 class Edge(Type):
