@@ -30,8 +30,6 @@ class Consignment(Type):
     exportLocation = Field(str)
     createdDatetime = Field(str)
     transferInitiatedDatetime = Field(str)
-    transferringBody = Field(TransferringBody)
-    seriesName = Field(str)
 
 
 class Edge(Type):

@@ -5,8 +5,8 @@ class Report:
 class StandardReport(Report):
     def __init__(self):
         self.fieldnames = [
-            "ConsignmentReference", "ConsignmentType", "TransferringBodyName", "BodyCode",
-            "SeriesCode", "ConsignmentId", "UserId", "CreatedDateTime", "TransferInitiatedDatetime", "ExportDateTime",
+            "ConsignmentReference", "ConsignmentType",
+            "ConsignmentId", "UserId", "CreatedDateTime", "TransferInitiatedDatetime", "ExportDateTime",
             "ExportLocation"]
 
     @staticmethod
@@ -14,9 +14,6 @@ class StandardReport(Report):
         return {
             "ConsignmentReference": node.consignmentReference,
             "ConsignmentType": node.consignmentType,
-            "TransferringBodyName": node.transferringBody.name,
-            "BodyCode": node.transferringBody.tdrCode,
-            "SeriesCode": node.seriesName,
             "ConsignmentId": node.consignmentid,
             "UserId": node.userid,
             "CreatedDateTime": node.createdDatetime,
