@@ -7,7 +7,7 @@ class StandardReport(Report):
         self.fieldnames = [
             "ConsignmentReference", "ConsignmentType", "TransferringBodyName", "BodyCode",
             "SeriesCode", "ConsignmentId", "UserId", "CreatedDateTime", "TransferInitiatedDatetime", "ExportDateTime",
-            "ExportLocation", "FileCount", "TotalSize(Bytes)"]
+            "ExportLocation"]
 
     @staticmethod
     def node_to_dict(node):
@@ -23,9 +23,7 @@ class StandardReport(Report):
             "TransferInitiatedDatetime": node.transferInitiatedDatetime if hasattr(node,
                                                                                    'transferInitiatedDatetime') else '',
             "ExportDateTime": node.exportDatetime,
-            "ExportLocation": node.exportLocation,
-            "FileCount": node.fileCount,
-            "TotalSize(Bytes)": node.totalFileSize
+            "ExportLocation": node.exportLocation
         }
 
     @staticmethod

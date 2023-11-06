@@ -31,8 +31,6 @@ class Consignment(Type):
     createdDatetime = Field(str)
     transferInitiatedDatetime = Field(str)
     transferringBody = Field(TransferringBody)
-    totalFileSize = Field(str)
-    fileCount = Field(str)
     seriesName = Field(str)
 
 
