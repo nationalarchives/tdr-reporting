@@ -30,8 +30,9 @@ class Consignment(Type):
     exportLocation = Field(str)
     createdDatetime = Field(str)
     transferInitiatedDatetime = Field(str)
-    files = list_of(File)
     transferringBody = Field(TransferringBody)
+    totalFileSize = Field(str)
+    fileCount = Field(str)
     seriesName = Field(str)
 
 

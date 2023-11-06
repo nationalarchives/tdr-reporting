@@ -50,7 +50,7 @@ def get_query(cursor=None):
     node.exportLocation()
     node.createdDatetime()
     node.transferringBody()
-    node.files()
+    node.totalFileSize()
     node.seriesName()
     edges.cursor()
     consignments_query.page_info.__fields__('has_next_page')
