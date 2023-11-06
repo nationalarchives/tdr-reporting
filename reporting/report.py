@@ -85,7 +85,7 @@ def generate_report(event):
             raise Exception("Error in response", data['errors'])
 
         consignments = (query + data).consignments
-        has_next_page = consignments.page_info.has_next_page
+        has_next_page = False
         consignments_dict = [report_type.node_to_dict(edge.node) for edge in consignments.edges
                              if report_type.edge_filter(edge)]
         all_consignments.extend(consignments_dict)
