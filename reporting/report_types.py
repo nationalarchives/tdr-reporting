@@ -24,9 +24,8 @@ class StandardReport(Report):
                                                                                    'transferInitiatedDatetime') else '',
             "ExportDateTime": node.exportDatetime,
             "ExportLocation": node.exportLocation,
-            "FileCount": len(node.files),
-            "TotalSize(Bytes)": 0 if not node.files else sum(
-                filter(None, (item.metadata.clientSideFileSize for item in node.files)))
+            "FileCount": node.totalFiles,
+            "TotalSize(Bytes)": node.totalFileSize
         }
 
     @staticmethod
