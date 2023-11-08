@@ -202,56 +202,56 @@ def check_caselaw_report(df):
     assert pd.isna(df['ExportDateTime'][0]) is True
 
 
-# @pytest.mark.parametrize('report_type', reports)
-# @httpretty.activate(allow_net_connect=False)
-# @patch('urllib.request.urlopen')
-# def test_report_with_valid_response(mock_urlopen, kms, ssm, report_type):
-#     """Test if report.csv generated with valid graphql response"""
-#
-#     with patch('reporting.report.requests.post') as mock_post:
-#         set_up(kms)
-#         setup_ssm(ssm)
-#         setup_slack_api(slack_api_response_ok)
-#         configure_mock_urlopen(mock_urlopen, graphql_response_ok)
-#         mock_post.return_value.status_code = 200
-#         mock_post.return_value.json = access_token
-#         remove_csv()
-#         report.handler({"emails": ["aa@gmail.com"], "reportType": report_type})
-#         df = pandas.read_csv(csv_file_path)
-#         if report_type == "standard":
-#             check_standard_report(df)
-#         elif report_type == "caselaw":
-#             check_caselaw_report(df)
+@pytest.mark.parametrize('report_type', reports)
+@httpretty.activate(allow_net_connect=False)
+@patch('urllib.request.urlopen')
+def test_report_with_valid_response(mock_urlopen, kms, ssm, report_type):
+    """Test if report.csv generated with valid graphql response"""
+
+    with patch('reporting.report.requests.post') as mock_post:
+        set_up(kms)
+        setup_ssm(ssm)
+        setup_slack_api(slack_api_response_ok)
+        configure_mock_urlopen(mock_urlopen, graphql_response_ok)
+        mock_post.return_value.status_code = 200
+        mock_post.return_value.json = access_token
+        remove_csv()
+        report.handler({"emails": ["aa@gmail.com"], "reportType": report_type})
+        df = pandas.read_csv(csv_file_path)
+        if report_type == "standard":
+            check_standard_report(df)
+        elif report_type == "caselaw":
+            check_caselaw_report(df)
 
 
-# @pytest.mark.parametrize('report_type', reports)
-# @patch('urllib.request.urlopen')
-# def test_json_error(mock_urlopen, kms, ssm, report_type):
-#     """Test if broken server response (invalid JSON) is handled"""
-#
-#     with patch('reporting.report.requests.post') as mock_post:
-#         set_up(kms)
-#         setup_slack_api(slack_api_response_ok)
-#         configure_mock_urlopen(mock_urlopen, graphql_response_json_error)
-#         mock_post.return_value.status_code = 200
-#         mock_post.return_value.json = access_token
-#         response = report.handler({"emails": ["aa@gmail.com"], "reportType": report_type})
-#         assert response['statusCode'] == 500
+@pytest.mark.parametrize('report_type', reports)
+@patch('urllib.request.urlopen')
+def test_json_error(mock_urlopen, kms, ssm, report_type):
+    """Test if broken server response (invalid JSON) is handled"""
+
+    with patch('reporting.report.requests.post') as mock_post:
+        set_up(kms)
+        setup_slack_api(slack_api_response_ok)
+        configure_mock_urlopen(mock_urlopen, graphql_response_json_error)
+        mock_post.return_value.status_code = 200
+        mock_post.return_value.json = access_token
+        response = report.handler({"emails": ["aa@gmail.com"], "reportType": report_type})
+        assert response['statusCode'] == 500
 
 
-# @pytest.mark.parametrize('report_type', reports)
-# @patch('urllib.request.urlopen')
-# def test_missing_required_field(mock_urlopen, kms, ssm, report_type):
-#     """Test if incorrect server response (missing required fields) is handled"""
-#
-#     with patch('reporting.report.requests.post') as mock_post:
-#         set_up(kms)
-#         setup_slack_api(slack_api_response_ok)
-#         configure_mock_urlopen(mock_urlopen, graphql_response_missing_required_fields)
-#         mock_post.return_value.status_code = 200
-#         mock_post.return_value.json = access_token
-#         response = report.handler({"emails": ["aa@gmail.com"], "reportType": report_type})
-#         assert response['statusCode'] == 500
+@pytest.mark.parametrize('report_type', reports)
+@patch('urllib.request.urlopen')
+def test_missing_required_field(mock_urlopen, kms, ssm, report_type):
+    """Test if incorrect server response (missing required fields) is handled"""
+
+    with patch('reporting.report.requests.post') as mock_post:
+        set_up(kms)
+        setup_slack_api(slack_api_response_ok)
+        configure_mock_urlopen(mock_urlopen, graphql_response_missing_required_fields)
+        mock_post.return_value.status_code = 200
+        mock_post.return_value.json = access_token
+        response = report.handler({"emails": ["aa@gmail.com"], "reportType": report_type})
+        assert response['statusCode'] == 500
 
 
 @pytest.mark.parametrize('report_type', reports)
@@ -271,105 +271,105 @@ def test_headers_and_query(mock_urlopen, kms, ssm, report_type):
         check_mock_urlopen(mock_urlopen, base_headers=headers)
 
 
-# @pytest.mark.parametrize('report_type', reports)
-# @patch('urllib.request.urlopen')
-# def test_http_server_error(mock_urlopen, kms, ssm, report_type):
-#     """Test if HTTP error without JSON payload is handled"""
-#
-#     with patch('reporting.report.requests.post') as mock_post:
-#         set_up(kms)
-#         setup_ssm(ssm)
-#         setup_slack_api(slack_api_response_ok)
-#
-#         err = urllib.error.HTTPError(
-#             'http://testserver.com',
-#             500,
-#             'Some Error',
-#             {'Xpto': 'abc'},
-#             io.BytesIO(b'xpto'),
-#         )
-#         configure_mock_urlopen(mock_urlopen, err)
-#         mock_post.return_value.status_code = 200
-#         mock_post.return_value.json = access_token
-#         response = report.handler({"emails": ["aa@gmail.com"], "reportType": report_type})
-#         assert response['statusCode'] == 500
-#
-#
-# @pytest.mark.parametrize('report_type', reports)
-# @patch('urllib.request.urlopen')
-# def test_slack_auth_token_is_not_valid(mock_urlopen, kms, ssm, report_type):
-#     """Test if 401 error returned if slack token is invalid"""
-#
-#     with patch('reporting.report.requests.post') as mock_post:
-#         set_up(kms)
-#         setup_ssm(ssm)
-#         setup_slack_api(slack_api_response_invalid)
-#         configure_mock_urlopen(mock_urlopen, graphql_response_ok)
-#         mock_post.return_value.status_code = 200
-#         mock_post.return_value.json = access_token
-#         response = report.handler({"emails": ["aa@gmail.com"], "reportType": report_type})
-#         assert response['statusCode'] == 401
-#
-#
-# @pytest.mark.parametrize('report_type', reports)
-# @patch('urllib.request.urlopen')
-# def test_multiple_emails_are_passed(mock_urlopen, kms, ssm, report_type):
-#     """Test if multiple emails are passed"""
-#
-#     with patch('reporting.report.requests.post') as mock_post:
-#         set_up(kms)
-#         setup_ssm(ssm)
-#         setup_slack_api(slack_api_response_ok)
-#         configure_mock_urlopen(mock_urlopen, graphql_response_ok)
-#         mock_post.return_value.status_code = 200
-#         mock_post.return_value.json = access_token
-#         report.handler({"emails": ["aa@gmail.com", "bb@gmail.com"], "reportType": report_type})
-#         headers = {'Authorization': f'Bearer {access_token()["access_token"]}'}
-#         check_mock_urlopen(mock_urlopen, base_headers=headers)
-#
-#
-# @pytest.mark.parametrize('report_type', reports)
-# @patch('urllib.request.urlopen')
-# def test_when_no_emails_are_passed(mock_urlopen, kms, ssm, report_type):
-#     """Test no slack message sent where no email addresses are provided"""
-#
-#     with patch('reporting.report.requests.post') as mock_post:
-#         set_up(kms)
-#         setup_ssm(ssm)
-#         configure_mock_urlopen(mock_urlopen, graphql_response_ok)
-#         mock_post.return_value.status_code = 200
-#         mock_post.return_value.json = access_token
-#         report.handler({"reportType": report_type})
-#         df = pandas.read_csv(csv_file_path)
-#         assert len(df) == 1
-#
-#
-# @pytest.mark.parametrize('report_type', reports)
-# @patch('urllib.request.urlopen')
-# def test_when_empty_email_list_are_passed(mock_urlopen, kms, ssm, report_type):
-#     """Test no slack message sent when empty email address list is provided"""
-#
-#     with patch('reporting.report.requests.post') as mock_post:
-#         set_up(kms)
-#         setup_ssm(ssm)
-#         configure_mock_urlopen(mock_urlopen, graphql_response_ok)
-#         mock_post.return_value.status_code = 200
-#         mock_post.return_value.json = access_token
-#         report.handler({"emails": [], "reportType": report_type})
-#         df = pandas.read_csv(csv_file_path)
-#         assert len(df) == 1
-#
-#
-# @patch('urllib.request.urlopen')
-# def test_when_no_report_is_passed(mock_urlopen, kms, ssm):
-#     """Test should run the standard report only if no reportType is provided"""
-#
-#     with patch('reporting.report.requests.post') as mock_post:
-#         set_up(kms)
-#         setup_ssm(ssm)
-#         configure_mock_urlopen(mock_urlopen, graphql_response_ok)
-#         mock_post.return_value.status_code = 200
-#         mock_post.return_value.json = access_token
-#         report.handler({"emails": []})
-#         df = pandas.read_csv(csv_file_path)
-#         check_standard_report(df)
+@pytest.mark.parametrize('report_type', reports)
+@patch('urllib.request.urlopen')
+def test_http_server_error(mock_urlopen, kms, ssm, report_type):
+    """Test if HTTP error without JSON payload is handled"""
+
+    with patch('reporting.report.requests.post') as mock_post:
+        set_up(kms)
+        setup_ssm(ssm)
+        setup_slack_api(slack_api_response_ok)
+
+        err = urllib.error.HTTPError(
+            'http://testserver.com',
+            500,
+            'Some Error',
+            {'Xpto': 'abc'},
+            io.BytesIO(b'xpto'),
+        )
+        configure_mock_urlopen(mock_urlopen, err)
+        mock_post.return_value.status_code = 200
+        mock_post.return_value.json = access_token
+        response = report.handler({"emails": ["aa@gmail.com"], "reportType": report_type})
+        assert response['statusCode'] == 500
+
+
+@pytest.mark.parametrize('report_type', reports)
+@patch('urllib.request.urlopen')
+def test_slack_auth_token_is_not_valid(mock_urlopen, kms, ssm, report_type):
+    """Test if 401 error returned if slack token is invalid"""
+
+    with patch('reporting.report.requests.post') as mock_post:
+        set_up(kms)
+        setup_ssm(ssm)
+        setup_slack_api(slack_api_response_invalid)
+        configure_mock_urlopen(mock_urlopen, graphql_response_ok)
+        mock_post.return_value.status_code = 200
+        mock_post.return_value.json = access_token
+        response = report.handler({"emails": ["aa@gmail.com"], "reportType": report_type})
+        assert response['statusCode'] == 401
+
+
+@pytest.mark.parametrize('report_type', reports)
+@patch('urllib.request.urlopen')
+def test_multiple_emails_are_passed(mock_urlopen, kms, ssm, report_type):
+    """Test if multiple emails are passed"""
+
+    with patch('reporting.report.requests.post') as mock_post:
+        set_up(kms)
+        setup_ssm(ssm)
+        setup_slack_api(slack_api_response_ok)
+        configure_mock_urlopen(mock_urlopen, graphql_response_ok)
+        mock_post.return_value.status_code = 200
+        mock_post.return_value.json = access_token
+        report.handler({"emails": ["aa@gmail.com", "bb@gmail.com"], "reportType": report_type})
+        headers = {'Authorization': f'Bearer {access_token()["access_token"]}'}
+        check_mock_urlopen(mock_urlopen, base_headers=headers)
+
+
+@pytest.mark.parametrize('report_type', reports)
+@patch('urllib.request.urlopen')
+def test_when_no_emails_are_passed(mock_urlopen, kms, ssm, report_type):
+    """Test no slack message sent where no email addresses are provided"""
+
+    with patch('reporting.report.requests.post') as mock_post:
+        set_up(kms)
+        setup_ssm(ssm)
+        configure_mock_urlopen(mock_urlopen, graphql_response_ok)
+        mock_post.return_value.status_code = 200
+        mock_post.return_value.json = access_token
+        report.handler({"reportType": report_type})
+        df = pandas.read_csv(csv_file_path)
+        assert len(df) == 1
+
+
+@pytest.mark.parametrize('report_type', reports)
+@patch('urllib.request.urlopen')
+def test_when_empty_email_list_are_passed(mock_urlopen, kms, ssm, report_type):
+    """Test no slack message sent when empty email address list is provided"""
+
+    with patch('reporting.report.requests.post') as mock_post:
+        set_up(kms)
+        setup_ssm(ssm)
+        configure_mock_urlopen(mock_urlopen, graphql_response_ok)
+        mock_post.return_value.status_code = 200
+        mock_post.return_value.json = access_token
+        report.handler({"emails": [], "reportType": report_type})
+        df = pandas.read_csv(csv_file_path)
+        assert len(df) == 1
+
+
+@patch('urllib.request.urlopen')
+def test_when_no_report_is_passed(mock_urlopen, kms, ssm):
+    """Test should run the standard report only if no reportType is provided"""
+
+    with patch('reporting.report.requests.post') as mock_post:
+        set_up(kms)
+        setup_ssm(ssm)
+        configure_mock_urlopen(mock_urlopen, graphql_response_ok)
+        mock_post.return_value.status_code = 200
+        mock_post.return_value.json = access_token
+        report.handler({"emails": []})
+        df = pandas.read_csv(csv_file_path)
+        check_standard_report(df)
