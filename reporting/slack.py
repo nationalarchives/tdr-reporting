@@ -2,7 +2,7 @@ from slack_sdk import WebClient
 
 
 def slack(emails, csv_file_path, slack_bot_token):
-    client = WebClient(token=slack_bot_token, timeout=60)
+    client = WebClient(token=slack_bot_token, timeout=180)
     print("Sending report to - ", emails)
     for email in emails:
         user_data = client.users_lookupByEmail(email=email)

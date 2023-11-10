@@ -28,10 +28,7 @@ query {
         createdDatetime
         totalFiles
         totalFileSize
-        transferringBody {
-            name
-            tdrCode
-        }        
+        transferringBodyName        
         seriesName
       }
       cursor
@@ -48,7 +45,7 @@ graphql_response_ok = b'''
   "data": {
     "consignments": {
       "edges": [
-          {"node": {"seriesName": null, "exportDatetime": null, "exportLocation": null, "userid": "9ae3d9c5-8a71-4c50-9b19-b1ff4d315b70", "totalFiles": "0", "totalFileSize": "0", "transferringBody": {"name": "MOCK1 Department", "tdrCode": "MOCK1"}, "consignmentid": "71c95054-74c1-4419-8864-67046c7fbbc7", "consignmentReference": "TDR-2022-C", "createdDatetime": "2022-05-10T11:43:19Z", "consignmentType": "judgment"}, "cursor": "TDR-2022-C"}
+          {"node": {"seriesName": null, "exportDatetime": null, "exportLocation": null, "userid": "9ae3d9c5-8a71-4c50-9b19-b1ff4d315b70", "totalFiles": "0", "totalFileSize": "0", "transferringBodyName": "MOCK1 Department", "consignmentid": "71c95054-74c1-4419-8864-67046c7fbbc7", "consignmentReference": "TDR-2022-C", "createdDatetime": "2022-05-10T11:43:19Z", "consignmentType": "judgment"}, "cursor": "TDR-2022-C"}
       ],
       "pageInfo": {"hasNextPage": false, "endCursor": "TDR-2022-C"}
     }
@@ -60,7 +57,7 @@ graphql_response_json_error = b'''
   "data": {
     "consignments": {
       "edges": [
-          {"node": {"seriesName": null, "exportDatetime": null, "exportLocation": null, "userid": "9ae3d9c5-8a71-4c50-9b19-b1ff4d315b70", "totalFiles": [, "transferringBody": {"name": "MOCK1 Department", "tdrCode": "MOCK1"}, "consignmentid": "71c95054-74c1-4419-8864-67046c7fbbc7", "consignmentReference": "TDR-2022-C", "createdDatetime": "2022-05-10T11:43:19Z", "consignmentType": "judgment"}, "cursor": "TDR-2022-C"}
+          {"node": {"seriesName": null, "exportDatetime": null, "exportLocation": null, "userid": "9ae3d9c5-8a71-4c50-9b19-b1ff4d315b70", "totalFiles": [, "transferringBodyName": "MOCK1 Department", "consignmentid": "71c95054-74c1-4419-8864-67046c7fbbc7", "consignmentReference": "TDR-2022-C", "createdDatetime": "2022-05-10T11:43:19Z", "consignmentType": "judgment"}, "cursor": "TDR-2022-C"}
       ],
       "pageInfo": {"hasNextPage": false, "endCursor": "TDR-2022-C"}
     }
@@ -72,7 +69,7 @@ graphql_response_missing_required_fields = b'''
   "data": {
     "consignments": {
       "edges": [
-          {"node": {"seriesName": null, "exportDatetime": null, "exportLocation": null, "totalFiles": "0", "totalFileSize": "0", "transferringBody": {"name": "MOCK1 Department", "tdrCode": "MOCK1"}, "consignmentid": "71c95054-74c1-4419-8864-67046c7fbbc7", "consignmentReference": "TDR-2022-C", "createdDatetime": "2022-05-10T11:43:19Z", "consignmentType": "judgment"}, "cursor": "TDR-2022-C"}
+          {"node": {"seriesName": null, "exportDatetime": null, "exportLocation": null, "totalFiles": "0", "totalFileSize": "0", "transferringBodyName": "MOCK1 Department", "consignmentid": "71c95054-74c1-4419-8864-67046c7fbbc7", "consignmentReference": "TDR-2022-C", "createdDatetime": "2022-05-10T11:43:19Z", "consignmentType": "judgment"}, "cursor": "TDR-2022-C"}
       ],
       "pageInfo": {"hasNextPage": false, "endCursor": "TDR-2022-C"}
     }
@@ -175,11 +172,10 @@ def ssm():
 
 def check_standard_report(df):
     assert len(df) == 1
-    assert len(df.columns) == 13
+    assert len(df.columns) == 12
     assert df['ConsignmentReference'][0] == 'TDR-2022-C'
     assert df['ConsignmentType'][0] == 'judgment'
     assert df['TransferringBodyName'][0] == 'MOCK1 Department'
-    assert df['BodyCode'][0] == 'MOCK1'
     assert pd.isnull(df['SeriesCode'][0]) is True
     assert df['ConsignmentId'][0] == '71c95054-74c1-4419-8864-67046c7fbbc7'
     assert df['UserId'][0] == '9ae3d9c5-8a71-4c50-9b19-b1ff4d315b70'
