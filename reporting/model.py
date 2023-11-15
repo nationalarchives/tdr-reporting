@@ -11,11 +11,6 @@ class File(Type):
     metadata = Field(FileMetadata)
 
 
-class TransferringBody(Type):
-    name = Field(str)
-    tdrCode = Field(str)
-
-
 class Series(Type):
     code = Field(str)
     name = Field(str)
@@ -32,7 +27,7 @@ class Consignment(Type):
     transferInitiatedDatetime = Field(str)
     totalFiles = Field(str)
     totalFileSize = Field(str)
-    transferringBody = Field(TransferringBody)
+    transferringBodyName = Field(str)
     seriesName = Field(str)
 
 

@@ -5,7 +5,7 @@ class Report:
 class StandardReport(Report):
     def __init__(self):
         self.fieldnames = [
-            "ConsignmentReference", "ConsignmentType", "TransferringBodyName", "BodyCode",
+            "ConsignmentReference", "ConsignmentType", "TransferringBodyName",
             "SeriesCode", "ConsignmentId", "UserId", "CreatedDateTime", "TransferInitiatedDatetime", "ExportDateTime",
             "ExportLocation", "FileCount", "TotalSize(Bytes)"]
 
@@ -14,8 +14,7 @@ class StandardReport(Report):
         return {
             "ConsignmentReference": node.consignmentReference,
             "ConsignmentType": node.consignmentType,
-            "TransferringBodyName": node.transferringBody.name,
-            "BodyCode": node.transferringBody.tdrCode,
+            "TransferringBodyName": node.transferringBodyName,
             "SeriesCode": node.seriesName,
             "ConsignmentId": node.consignmentid,
             "UserId": node.userid,
