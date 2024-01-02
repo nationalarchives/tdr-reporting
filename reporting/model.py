@@ -28,6 +28,7 @@ class Consignment(Type):
     totalFiles = Field(str)
     totalFileSize = Field(str)
     transferringBodyName = Field(str)
+    transferringBodyTdrCode = Field(str)
     seriesName = Field(str)
 
 

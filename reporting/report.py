@@ -52,6 +52,7 @@ def get_query(cursor=None):
     node.totalFiles()
     node.totalFileSize()
     node.transferringBodyName()
+    node.transferringBodyTdrCode()
     node.seriesName()
     edges.cursor()
     consignments_query.page_info.__fields__('has_next_page')
