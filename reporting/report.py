@@ -71,6 +71,7 @@ def get_client_secret():
 
 
 def generate_report(event):
+    environment = os.environ["AWS_LAMBDA_FUNCTION_NAME"].split("-")[2]
     report_type = StandardReport()
     if event is not None and "reportType" in event:
         if event["reportType"] == "caselaw":
@@ -91,7 +92,7 @@ def generate_report(event):
             raise Exception("Error in response", data['errors'])
 
         consignments = (query + data).consignments
-        has_next_page = False  # consignments.page_info.has_next_page
+        has_next_page = (consignments.page_info.has_next_page, False) [environment=="intg"]
         consignments_dict = [report_type.node_to_dict(edge.node) for edge in consignments.edges
                              if report_type.edge_filter(edge)]
         all_consignments.extend(consignments_dict)
@@ -105,7 +106,6 @@ def generate_report(event):
         writer.writerows(all_consignments)
 
     if event is not None:
-        environment = os.environ["AWS_LAMBDA_FUNCTION_NAME"].split("-")[2]
         slack(event, environment, csv_file_path, decode("SLACK_BOT_TOKEN"))
 
 
