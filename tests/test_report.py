@@ -371,7 +371,7 @@ def test_when_no_report_is_passed(mock_urlopen, kms, ssm):
         configure_mock_urlopen(mock_urlopen, graphql_response_ok)
         mock_post.return_value.status_code = 200
         mock_post.return_value.json = access_token
-        csv_file_path = report.get_filepath(None)
+        csv_file_path = report.get_filepath()
         report.handler({"userName": []})
         df = pandas.read_csv(csv_file_path)
         check_standard_report(df)

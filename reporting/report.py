@@ -109,12 +109,12 @@ def generate_report(event):
         slack(event, environment, csv_file_path, decode("SLACK_BOT_TOKEN"))
 
 
-def get_filepath(reportType):
+def get_filepath(reportType=None):
     report_type = (reportType, "standard")[not reportType]
     return f"{default_folder}report_{report_type}_{datetime.today().strftime('%Y%m%d')}.csv"
 
 # noinspection PyBroadException
-def handler(event=None):
+def handler(event=None, context=None):
     try:
         generate_report(event)
     except SlackApiError as e:
