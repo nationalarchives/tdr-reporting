@@ -1,10 +1,16 @@
+import os
 from slack_sdk import WebClient
+from datetime import datetime
 
 
-def slack(emails, csv_file_path, slack_bot_token):
+def slack(event, environment, csv_file_path, slack_bot_token):
     client = WebClient(token=slack_bot_token, timeout=180)
-    print("Sending report to - ", emails)
-    for email in emails:
-        user_data = client.users_lookupByEmail(email=email)
-        with open(csv_file_path, 'rb') as csvfile:
-            client.files_upload(file=csvfile, channels=[user_data["user"]["id"]])
+    user_name = event["userName"]
+    report_type = event["reportType"]
+
+    client.files_upload_v2(
+        file=csv_file_path,
+        title=f"TDR {report_type} report",
+        channel=os.environ['TDR_REPORTING_CHANNEL_ID'],
+        initial_comment=f"{report_type.title()} report requested by {user_name} on {datetime.today().strftime('%d-%m-%Y @ %H:%M')} [{environment}]",
+    )

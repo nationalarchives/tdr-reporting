@@ -27,6 +27,7 @@ def set_up(kms):
     os.environ['AWS_DEFAULT_REGION'] = 'eu-west-2'
     os.environ['SLACK_BOT_TOKEN'] = encrypt(kms_key, kms, "slack_token")
     os.environ['CLIENT_SECRET_PATH'] = "/test/client/secret"
+    os.environ['TDR_REPORTING_CHANNEL_ID'] = "00000000000"
 
 
 def setup_ssm(ssm):

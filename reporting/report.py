@@ -1,6 +1,7 @@
 import csv
 import os
 import traceback
+from datetime import datetime
 from base64 import b64decode
 
 import boto3
@@ -14,8 +15,7 @@ from .report_types import StandardReport, CaseLawReport
 from .model import Consignments
 from .slack import slack
 
-csv_file_path = "/tmp/report.csv"
-
+default_folder = "/tmp/"
 
 def decode(env_var_name):
     client = boto3.client("kms")
@@ -76,6 +76,7 @@ def generate_report(event):
         if event["reportType"] == "caselaw":
             report_type = CaseLawReport()
 
+    csv_file_path = get_filepath(event["reportType"])
     api_url = f'{os.environ["CONSIGNMENT_API_URL"]}/graphql'
     all_consignments = []
     has_next_page = True
@@ -90,7 +91,7 @@ def generate_report(event):
             raise Exception("Error in response", data['errors'])
 
         consignments = (query + data).consignments
-        has_next_page = consignments.page_info.has_next_page
+        has_next_page = False  # consignments.page_info.has_next_page
         consignments_dict = [report_type.node_to_dict(edge.node) for edge in consignments.edges
                              if report_type.edge_filter(edge)]
         all_consignments.extend(consignments_dict)
@@ -103,12 +104,17 @@ def generate_report(event):
         writer.writeheader()
         writer.writerows(all_consignments)
 
-    if event is not None and len(event['emails']) > 0:
-        slack(event['emails'], csv_file_path, decode("SLACK_BOT_TOKEN"))
+    if event is not None:
+        environment = os.environ["AWS_LAMBDA_FUNCTION_NAME"].split("-")[2]
+        slack(event, environment, csv_file_path, decode("SLACK_BOT_TOKEN"))
 
+
+def get_filepath(reportType):
+    report_type = (reportType, "standard")[not reportType]
+    return f"{default_folder}report_{report_type}_{datetime.today().strftime('%Y%m%d')}.csv"
 
 # noinspection PyBroadException
-def handler(event=None, context=None):
+def handler(event=None):
     try:
         generate_report(event)
     except SlackApiError as e:
