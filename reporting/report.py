@@ -106,7 +106,7 @@ def generate_report(event):
         writer.writerows(all_consignments)
 
     if event is not None:
-        slack(event, environment, csv_file_path, decode("SLACK_BOT_TOKEN"))
+        slack(event, environment, csv_file_path)
 
 
 def get_filepath(reportType=None):
