@@ -2,7 +2,6 @@ import csv
 import os
 import traceback
 from datetime import datetime
-from base64 import b64decode
 
 import boto3
 import requests
@@ -16,12 +15,6 @@ from .model import Consignments
 from .slack import slack
 
 default_folder = "/tmp/"
-
-def decode(env_var_name):
-    client = boto3.client("kms")
-    decoded = client.decrypt(CiphertextBlob=b64decode(os.environ[env_var_name]),
-                             EncryptionContext={"LambdaFunctionName": os.environ["AWS_LAMBDA_FUNCTION_NAME"]})
-    return decoded["Plaintext"].decode("utf-8")
 
 
 class Query(Type):
