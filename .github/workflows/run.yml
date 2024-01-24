@@ -19,10 +19,6 @@ on:
           - standard
           - caselaw
         default: 'standard'
-      emails:
-        description: 'Emails (in double quote)'
-        required: false
-        type: string
 permissions:
   id-token: write
   contents: write
@@ -52,4 +48,4 @@ jobs:
           role-session-name: ECRLogin
       - name: run lambda function
         run: |
-          aws lambda invoke --function-name tdr-reporting-${{ inputs.environment }} --cli-read-timeout 0 --cli-binary-format raw-in-base64-out --payload '{"emails": [${{ inputs.emails }}],"reportType": "${{ inputs.reportType }}"}' response.json
+          aws lambda invoke --function-name tdr-reporting-${{ inputs.environment }} --cli-read-timeout 0 --cli-binary-format raw-in-base64-out --payload '{"userName": "${{ github.actor }}","reportType": "${{ inputs.reportType }}"}' response.json
