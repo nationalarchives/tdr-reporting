@@ -22,6 +22,7 @@ on:
 permissions:
   id-token: write
   contents: write
+run-name: Running ${{ inputs.reportType }} report on ${{ inputs.environment }} by @${{ github.actor }}
 jobs:
   run:
     runs-on: ubuntu-latest
