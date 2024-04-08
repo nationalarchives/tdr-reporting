@@ -6,7 +6,7 @@ import boto3
 import pandas as pandas
 import pandas as pd
 import pytest
-from moto import mock_kms, mock_ssm
+from moto import mock_aws
 from nose.tools import eq_
 
 from reporting import report
@@ -161,13 +161,13 @@ def check_mock_urlopen(mock_urlopen,
 
 @pytest.fixture(scope='function')
 def kms():
-    with mock_kms():
+    with mock_aws():
         yield boto3.client('kms', region_name='eu-west-2')
 
 
 @pytest.fixture(scope='function')
 def ssm():
-    with mock_ssm():
+    with mock_aws():
         yield boto3.client('ssm', region_name='eu-west-2')
 
 
