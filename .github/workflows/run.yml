@@ -1,6 +1,7 @@
 name: TDR Run Reporting
 on:
   workflow_dispatch:
+    run-name: Run ${{ inputs.reportType }} report on ${{ inputs.environment }}
     inputs:
       environment:
         description: 'Environment: Choose prod for live data'
@@ -22,7 +23,7 @@ on:
 permissions:
   id-token: write
   contents: write
-run-name: Running ${{ inputs.reportType }} report on ${{ inputs.environment }} by @${{ github.actor }}
+
 jobs:
   run:
     runs-on: ubuntu-latest
