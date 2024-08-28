@@ -1,4 +1,4 @@
-FROM amazonlinux:2.0.20240610.1
+FROM amazonlinux:2023
 COPY requirements-runtime.txt /requirements.txt
 COPY build-dependencies.sh /
 COPY reporting /app
