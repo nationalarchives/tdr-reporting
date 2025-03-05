@@ -20,7 +20,7 @@ permissions:
   contents: write
 jobs:
   deploy:
-    uses: nationalarchives/tdr-github-actions/.github/workflows/lambda_deploy.yml@new-lambda-s3-structure
+    uses: nationalarchives/tdr-github-actions/.github/workflows/lambda_deploy.yml@main
     with:
       lambda-name: reporting
       deployment-package: function.zip
