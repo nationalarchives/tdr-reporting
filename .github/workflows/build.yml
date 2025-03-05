@@ -6,9 +6,10 @@ on:
       - main
 jobs:
   pre-deploy:
-    uses: nationalarchives/tdr-github-actions/.github/workflows/lambda_build.yml@main
+    uses: nationalarchives/tdr-github-actions/.github/workflows/lambda_build.yml@new-lambda-s3-structure
     with:
       repo-name: tdr-reporting
+      lambda-name: reporting
       artifact-name: function
       artifact-file-type: zip
       artifact-path: lambda
