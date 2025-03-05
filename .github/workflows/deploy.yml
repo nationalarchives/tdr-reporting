@@ -15,6 +15,7 @@ on:
         description: 'Version to deploy'
         required: true
 
+run-name: Deploying Reporting Lambda ${{inputs.to-deploy}} to ${{inputs.environment}}
 permissions:
   id-token: write
   contents: write
