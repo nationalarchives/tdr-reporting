@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
       - id: role-name
         run: |
           import os
@@ -41,7 +41,7 @@ jobs:
             print(f"account-number-secret-name={'${{ inputs.environment }}'.upper()}_ACCOUNT_NUMBER", file=fh)
         shell: python
       - name: Configure AWS credentials for Lambda
-        uses: aws-actions/configure-aws-credentials@v1-node16
+        uses: aws-actions/configure-aws-credentials@ececac1a45f3b08a01d2dd070d28d111c5fe6722
         with:
           role-to-assume: arn:aws:iam::${{ secrets[steps.account-number-secret-name.outputs.account-number-secret-name] }}:role/${{ steps.role-name.outputs.role-name }}
           aws-region: eu-west-2
