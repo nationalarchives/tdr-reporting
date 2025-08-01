@@ -13,6 +13,11 @@ from reporting import report
 from utils.utils import *
 
 
+# Simple helper to ensure /tmp directory exists
+def ensure_tmp_dir():
+    os.makedirs("/tmp", exist_ok=True)
+
+
 timeout = 300
 graphql_query = """
 query {
@@ -211,6 +216,9 @@ def check_caselaw_report(df):
 def test_report_with_valid_response(mock_urlopen, kms, ssm, report_type):
     """Test if report.csv generated with valid graphql response"""
 
+    # Ensure /tmp directory exists
+    ensure_tmp_dir()
+
     with patch('reporting.report.requests.post') as mock_post:
         set_up(kms)
         setup_ssm(ssm)
@@ -337,6 +345,9 @@ def test_multiple_emails_are_passed(mock_urlopen, kms, ssm, report_type):
 def test_when_no_emails_are_passed(mock_urlopen, kms, ssm, report_type):
     """Test no slack message sent where no email addresses are provided"""
 
+    # Ensure /tmp directory exists
+    ensure_tmp_dir()
+
     with patch('reporting.report.requests.post') as mock_post:
         set_up(kms)
         setup_ssm(ssm)
@@ -354,6 +365,9 @@ def test_when_no_emails_are_passed(mock_urlopen, kms, ssm, report_type):
 def test_when_empty_email_list_are_passed(mock_urlopen, kms, ssm, report_type):
     """Test no slack message sent when empty email address list is provided"""
 
+    # Ensure /tmp directory exists
+    ensure_tmp_dir()
+
     with patch('reporting.report.requests.post') as mock_post:
         set_up(kms)
         setup_ssm(ssm)
@@ -369,6 +383,9 @@ def test_when_empty_email_list_are_passed(mock_urlopen, kms, ssm, report_type):
 @patch('urllib.request.urlopen')
 def test_when_no_report_is_passed(mock_urlopen, kms, ssm):
     """Test should run the standard report only if no reportType is provided"""
+
+    # Ensure /tmp directory exists
+    ensure_tmp_dir()
 
     with patch('reporting.report.requests.post') as mock_post:
         set_up(kms)
