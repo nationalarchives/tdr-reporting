@@ -7,6 +7,7 @@ import pandas as pandas
 import pandas as pd
 import pytest
 from moto import mock_aws
+from nose.tools import eq_
 
 from reporting import report
 from utils.utils import *
@@ -110,14 +111,14 @@ def check_request_headers_(req, headers, name):
         headers = headers.items()
     for k, v in headers:
         g = req.get_header(k)
-        assert g == v, f'Failed {name} header {k}: {v!r} != {g!r}'
+        eq_(g, v, 'Failed {} header {}: {!r} != {!r}'.format(name, k, v, g))
 
 
 def check_request_headers(req, base_headers):
     accept_header = 'application/json; charset=utf-8'
-    assert req.get_header('Accept') == accept_header
+    eq_(req.get_header('Accept'), accept_header)
     if req.method == 'POST':
-        assert req.get_header('Content-type') == 'application/json; charset=utf-8'
+        eq_(req.get_header('Content-type'), 'application/json; charset=utf-8')
     check_request_headers_(req, base_headers, 'base')
 
 
@@ -141,7 +142,7 @@ def check_request_query(req, query):
         query = query.decode('utf-8')
 
     query = "\n".join([s.strip() for s in query.split("\n") if s])
-    assert received == query
+    eq_(received, query)
 
 
 def check_mock_urlopen(mock_urlopen,
@@ -152,8 +153,8 @@ def check_mock_urlopen(mock_urlopen,
     assert mock_urlopen.called
     args = mock_urlopen.call_args
     req = args[0][0]
-    assert req.method == method
-    assert args[1]['timeout'] == timeout
+    eq_(req.method, method)
+    eq_(args[1]['timeout'], timeout)
     check_request_headers(req, base_headers)
     check_request_query(req, query or graphql_query)
 
