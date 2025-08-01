@@ -11,9 +11,9 @@ def slack(event, environment, csv_file_path):
     user_names = event.get("userName") or []
     if not user_names:
         return
-    # Initialize Slack client with raw token and test base_url
+    # Initialize Slack client with raw token
     token = decode("SLACK_BOT_TOKEN")
-    client = WebClient(token=token, timeout=180, base_url="https://www.slack.com/api/")
+    client = WebClient(token=token, timeout=180)
     # Lookup each user by email to validate token
     for user in user_names:
         resp = client.users_lookupByEmail(email=user)
