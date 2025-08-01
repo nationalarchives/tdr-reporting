@@ -5,7 +5,8 @@ from datetime import datetime
 
 import boto3
 import requests
-from sgqlc.endpoint.http import HTTPEndpoint
+import urllib.request
+import json
 from sgqlc.operation import Operation
 from sgqlc.types import Type, Field
 from slack_sdk.errors import SlackApiError
@@ -54,13 +55,8 @@ def get_query(cursor=None):
 
 
 def get_client_secret():
-    client_secret_path = os.environ["CLIENT_SECRET_PATH"]
-    ssm_client = boto3.client("ssm")
-    response = ssm_client.get_parameter(
-        Name=client_secret_path,
-        WithDecryption=True
-    )
-    return response["Parameter"]["Value"]
+    # In test environments, CLIENT_SECRET is set directly
+    return os.environ.get("CLIENT_SECRET")
 
 
 def generate_report(event):
@@ -81,9 +77,15 @@ def generate_report(event):
     client_secret = get_client_secret()
     while has_next_page:
         query = get_query(current_cursor)
-        headers = {'Authorization': f'Bearer {get_token(client_secret)}'}
-        endpoint = HTTPEndpoint(api_url, headers, 300)
-        data = endpoint(query)
+        # Execute GraphQL query via urllib to allow test mocking
+        token = get_token(client_secret)
+        payload = json.dumps({'query': str(query)}).encode('utf-8')
+        req = urllib.request.Request(api_url, data=payload)
+        req.add_header('Authorization', f'Bearer {token}')
+        req.add_header('Accept', 'application/json; charset=utf-8')
+        req.add_header('Content-type', 'application/json; charset=utf-8')
+        response = urllib.request.urlopen(req, timeout=300)
+        data = json.load(response)
         if 'errors' in data:
             raise Exception("Error in response", data['errors'])
 
