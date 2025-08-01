@@ -134,6 +134,9 @@ def check_request_query(req, query):
     if req.method == 'POST':
         post_data = json.loads(req.data)
         received = post_data.get('query')
+        # Normalize received query by stripping indentation
+        if received:
+            received = "\n".join([line.strip() for line in received.split("\n") if line])
     else:
         query_data = get_request_url_query(req)
         received = query_data.get('query')
@@ -141,8 +144,9 @@ def check_request_query(req, query):
     if isinstance(query, bytes):
         query = query.decode('utf-8')
 
+    # Normalize expected query
     query = "\n".join([s.strip() for s in query.split("\n") if s])
-    eq_(received, query)
+    assert received == query
 
 
 def check_mock_urlopen(mock_urlopen,
