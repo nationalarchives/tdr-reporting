@@ -34,5 +34,7 @@ def slack(event, environment, csv_file_path):
         raise SlackApiError(f"Error uploading file: {resp.get('error')}", resp)
 
 def decode(env_var_name):
-    # Return raw environment variable for tests
-    return os.environ.get(env_var_name)
+    client = boto3.client("kms")
+    decoded = client.decrypt(CiphertextBlob=b64decode(os.environ[env_var_name]),
+                             EncryptionContext={"LambdaFunctionName": os.environ["AWS_LAMBDA_FUNCTION_NAME"]})
+    return decoded["Plaintext"].decode("utf-8")
