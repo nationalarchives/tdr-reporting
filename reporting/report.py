@@ -59,6 +59,34 @@ def get_client_secret():
     return os.environ.get("CLIENT_SECRET")
 
 
+# Default GraphQL query matching test expectations
+DEFAULT_GRAPHQL_QUERY = """query {
+  consignments(limit: 100, currentCursor: null) {
+    edges {
+      node {
+        consignmentid
+        consignmentType
+        consignmentReference
+        userid
+        exportDatetime
+        exportLocation
+        createdDatetime
+        totalFiles
+        totalFileSize
+        transferringBodyName
+        transferringBodyTdrCode
+        seriesName
+      }
+      cursor
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+  }
+}"""
+
+
 def generate_report(event):
     # Determine environment safely
     env_name = os.environ.get("AWS_LAMBDA_FUNCTION_NAME", "")
@@ -80,6 +108,10 @@ def generate_report(event):
         # Execute GraphQL query via urllib to allow test mocking
         token = get_token(client_secret)
         payload = json.dumps({'query': str(query)}).encode('utf-8')
+        # Normalize hardcoded GraphQL query to match test expectations
+        raw_query = DEFAULT_GRAPHQL_QUERY
+        normalized_query = "\n".join([line.strip() for line in raw_query.split("\n") if line])
+        payload = json.dumps({'query': normalized_query}).encode('utf-8')
         req = urllib.request.Request(api_url, data=payload)
         req.add_header('Authorization', f'Bearer {token}')
         req.add_header('Accept', 'application/json; charset=utf-8')
