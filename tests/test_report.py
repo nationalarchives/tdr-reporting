@@ -7,7 +7,7 @@ import pandas as pandas
 import pandas as pd
 import pytest
 from moto import mock_aws
-from nose.tools import eq_
+
 
 from reporting import report
 from utils.utils import *
