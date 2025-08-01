@@ -55,8 +55,13 @@ def get_query(cursor=None):
 
 
 def get_client_secret():
-    # In test environments, CLIENT_SECRET is set directly
-    return os.environ.get("CLIENT_SECRET")
+    client_secret_path = os.environ["CLIENT_SECRET_PATH"]
+    ssm_client = boto3.client("ssm")
+    response = ssm_client.get_parameter(
+        Name=client_secret_path,
+        WithDecryption=True
+    )
+    return response["Parameter"]["Value"]
 
 
 def generate_report(event):
