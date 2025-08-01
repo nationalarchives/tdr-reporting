@@ -159,7 +159,21 @@ def check_mock_urlopen(mock_urlopen,
                        ):
     assert mock_urlopen.called
     args = mock_urlopen.call_args
-    req = args[0][0]
+    posargs = args[0]
+    # If HTTPEndpoint patched, args are (url, headers, timeout)
+    if len(posargs) == 3 and isinstance(posargs[0], str):
+        url, headers, to = posargs
+        # Verify URL and timeout
+        expected_url = f"{os.environ['CONSIGNMENT_API_URL']}/graphql"
+        assert url == expected_url
+        assert to == timeout
+        # Verify headers include authorization
+        if base_headers:
+            for k, v in base_headers.items():
+                assert headers.get(k) == v
+        return
+    # Else assume urllib.request.urlopen interface
+    req = posargs[0]
     assert req.method == method
     assert args[1]['timeout'] == timeout
     check_request_headers(req, base_headers)

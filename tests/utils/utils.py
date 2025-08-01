@@ -45,17 +45,19 @@ def access_token():
 
 
 def setup_slack_api(response):
-    httpretty.register_uri(
-        httpretty.POST,
-        'https://www.slack.com/api/users.lookupByEmail',
-        adding_headers={},
-        body=json.dumps(response),
-        status=200
-    )
-    httpretty.register_uri(
-        httpretty.POST,
-        'https://www.slack.com/api/files.upload',
-        adding_headers={},
-        body=json.dumps({'ok': 'true'}),
-        status=200
-    )
+    # Stub both www and non-www Slack API hosts
+    for host in ['https://www.slack.com/api', 'https://slack.com/api']:
+        httpretty.register_uri(
+            httpretty.POST,
+            f'{host}/users.lookupByEmail',
+            adding_headers={},
+            body=json.dumps(response),
+            status=200
+        )
+        httpretty.register_uri(
+            httpretty.POST,
+            f'{host}/files.upload',
+            adding_headers={},
+            body=json.dumps({'ok': 'true'}),
+            status=200
+        )
