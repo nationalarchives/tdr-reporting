@@ -1,5 +1,6 @@
 import io
 import urllib
+import os
 from unittest.mock import patch
 
 import boto3
