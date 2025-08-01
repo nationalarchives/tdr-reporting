@@ -64,16 +64,13 @@ def get_client_secret():
 
 
 def generate_report(event):
-    # Determine environment safely
-    env_name = os.environ.get("AWS_LAMBDA_FUNCTION_NAME", "")
-    parts = env_name.split("-")
-    environment = parts[2] if len(parts) >= 3 else ""
-    # Choose report type, default to standard
+    environment = os.environ["AWS_LAMBDA_FUNCTION_NAME"].split("-")[2]
     report_type = StandardReport()
-    if event and event.get("reportType") == "caselaw":
-        report_type = CaseLawReport()
-    # Build CSV file path
-    csv_file_path = get_filepath(event.get("reportType"))
+    if event is not None and "reportType" in event:
+        if event["reportType"] == "caselaw":
+            report_type = CaseLawReport()
+
+    csv_file_path = get_filepath(event["reportType"])
     api_url = f'{os.environ["CONSIGNMENT_API_URL"]}/graphql'
     all_consignments = []
     has_next_page = True
@@ -81,8 +78,7 @@ def generate_report(event):
     client_secret = get_client_secret()
     while has_next_page:
         query = get_query(current_cursor)
-        token = get_token(client_secret)
-        headers = {'Authorization': f'Bearer {token}'}
+        headers = {'Authorization': f'Bearer {get_token(client_secret)}'}
         endpoint = HTTPEndpoint(api_url, headers, 300)
         data = endpoint(query)
         if 'errors' in data:
