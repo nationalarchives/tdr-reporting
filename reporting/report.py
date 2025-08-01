@@ -84,6 +84,8 @@ def generate_report(event):
         req.add_header('Authorization', f'Bearer {token}')
         req.add_header('Accept', 'application/json; charset=utf-8')
         req.add_header('Content-type', 'application/json; charset=utf-8')
+        # Ensure tests can access HTTP method
+        req.method = req.get_method()
         response = urllib.request.urlopen(req, timeout=300)
         # Load JSON from bytes response
         raw = response.read()
