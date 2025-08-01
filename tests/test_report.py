@@ -94,7 +94,6 @@ reports = ["standard", "caselaw"]
 
 
 def configure_mock_urlopen(mock_urlopen, payload):
-    # Configure mock HTTPEndpoint to return parsed JSON or raise
     if isinstance(payload, Exception):
         mock_call = MagicMock(side_effect=payload)
     else:
@@ -143,7 +142,6 @@ def check_request_query(req, query):
     if req.method == 'POST':
         post_data = json.loads(req.data)
         received = post_data.get('query')
-        # Normalize received query by stripping indentation
         if received:
             received = "\n".join([line.strip() for line in received.split("\n") if line])
     else:
@@ -153,7 +151,6 @@ def check_request_query(req, query):
     if isinstance(query, bytes):
         query = query.decode('utf-8')
 
-    # Normalize expected query
     query = "\n".join([s.strip() for s in query.split("\n") if s])
     assert received == query
 
@@ -178,7 +175,6 @@ def check_mock_urlopen(mock_urlopen,
             for k, v in base_headers.items():
                 assert headers.get(k) == v
         return
-    # Else assume urllib.request.urlopen interface
     req = posargs[0]
     assert req.method == method
     assert args[1]['timeout'] == timeout

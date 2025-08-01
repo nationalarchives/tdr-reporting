@@ -6,7 +6,6 @@ from datetime import datetime
 import boto3
 import requests
 from sgqlc.endpoint.http import HTTPEndpoint
-import json
 from sgqlc.operation import Operation
 from sgqlc.types import Type, Field
 from slack_sdk.errors import SlackApiError
@@ -82,7 +81,6 @@ def generate_report(event):
     client_secret = get_client_secret()
     while has_next_page:
         query = get_query(current_cursor)
-        # Execute GraphQL query via sgqlc HTTPEndpoint
         token = get_token(client_secret)
         headers = {'Authorization': f'Bearer {token}'}
         endpoint = HTTPEndpoint(api_url, headers, 300)
