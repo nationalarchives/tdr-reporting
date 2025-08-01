@@ -98,7 +98,13 @@ def configure_mock_urlopen(mock_urlopen, payload):
     if isinstance(payload, Exception):
         mock_call = MagicMock(side_effect=payload)
     else:
-        mock_call = MagicMock(return_value=json.loads(payload))
+        # Attempt to parse JSON now; if it fails, raise at invocation
+        try:
+            parsed = json.loads(payload)
+            mock_call = MagicMock(return_value=parsed)
+        except json.JSONDecodeError as e:
+            # Raise JSON decode error when endpoint is called
+            mock_call = MagicMock(side_effect=e)
     mock_urlopen.return_value = mock_call
 
 
