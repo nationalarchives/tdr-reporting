@@ -5,7 +5,7 @@ from datetime import datetime
 
 import boto3
 import requests
-import urllib.request
+from sgqlc.endpoint.http import HTTPEndpoint
 import json
 from sgqlc.operation import Operation
 from sgqlc.types import Type, Field
@@ -82,23 +82,11 @@ def generate_report(event):
     client_secret = get_client_secret()
     while has_next_page:
         query = get_query(current_cursor)
-        # Execute GraphQL query via urllib to allow test mocking
+        # Execute GraphQL query via sgqlc HTTPEndpoint
         token = get_token(client_secret)
-        # Normalize dynamic GraphQL query string to strip indentation and blank lines
-        raw_query = str(query)
-        normalized_query = "\n".join([line.strip() for line in raw_query.split("\n") if line])
-        payload = json.dumps({'query': normalized_query}).encode('utf-8')
-        req = urllib.request.Request(api_url, data=payload)
-        req.add_header('Authorization', f'Bearer {token}')
-        req.add_header('Accept', 'application/json; charset=utf-8')
-        req.add_header('Content-type', 'application/json; charset=utf-8')
-        # Ensure tests can access HTTP method
-        req.method = req.get_method()
-        response = urllib.request.urlopen(req, timeout=300)
-        # Load JSON from bytes response
-        raw = response.read()
-        body = raw.decode('utf-8') if isinstance(raw, (bytes, bytearray)) else raw
-        data = json.loads(body)
+        headers = {'Authorization': f'Bearer {token}'}
+        endpoint = HTTPEndpoint(api_url, headers, 300)
+        data = endpoint(query)
         if 'errors' in data:
             raise Exception("Error in response", data['errors'])
 

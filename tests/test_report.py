@@ -1,6 +1,7 @@
 import io
 import urllib
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
+import json
 
 import boto3
 import pandas as pandas
@@ -93,10 +94,12 @@ reports = ["standard", "caselaw"]
 
 
 def configure_mock_urlopen(mock_urlopen, payload):
+    # Configure mock HTTPEndpoint to return parsed JSON or raise
     if isinstance(payload, Exception):
-        mock_urlopen.side_effect = payload
+        mock_call = MagicMock(side_effect=payload)
     else:
-        mock_urlopen.return_value = io.BytesIO(payload)
+        mock_call = MagicMock(return_value=json.loads(payload))
+    mock_urlopen.return_value = mock_call
 
 
 def remove_csv(csv_file_path):
@@ -206,7 +209,7 @@ def check_caselaw_report(df):
 
 @pytest.mark.parametrize('report_type', reports)
 @httpretty.activate(allow_net_connect=False)
-@patch('urllib.request.urlopen')
+@patch('reporting.report.HTTPEndpoint')
 def test_report_with_valid_response(mock_urlopen, kms, ssm, report_type):
     """Test if report.csv generated with valid graphql response"""
 
@@ -228,7 +231,8 @@ def test_report_with_valid_response(mock_urlopen, kms, ssm, report_type):
 
 
 @pytest.mark.parametrize('report_type', reports)
-@patch('urllib.request.urlopen')
+@httpretty.activate(allow_net_connect=False)
+@patch('reporting.report.HTTPEndpoint')
 def test_json_error(mock_urlopen, kms, ssm, report_type):
     """Test if broken server response (invalid JSON) is handled"""
 
@@ -243,7 +247,8 @@ def test_json_error(mock_urlopen, kms, ssm, report_type):
 
 
 @pytest.mark.parametrize('report_type', reports)
-@patch('urllib.request.urlopen')
+@httpretty.activate(allow_net_connect=False)
+@patch('reporting.report.HTTPEndpoint')
 def test_missing_required_field(mock_urlopen, kms, ssm, report_type):
     """Test if incorrect server response (missing required fields) is handled"""
 
@@ -258,7 +263,8 @@ def test_missing_required_field(mock_urlopen, kms, ssm, report_type):
 
 
 @pytest.mark.parametrize('report_type', reports)
-@patch('urllib.request.urlopen')
+@httpretty.activate(allow_net_connect=False)
+@patch('reporting.report.HTTPEndpoint')
 def test_headers_and_query(mock_urlopen, kms, ssm, report_type):
     """Test if all headers, query and standard timeout are passed"""
 
@@ -275,7 +281,8 @@ def test_headers_and_query(mock_urlopen, kms, ssm, report_type):
 
 
 @pytest.mark.parametrize('report_type', reports)
-@patch('urllib.request.urlopen')
+@httpretty.activate(allow_net_connect=False)
+@patch('reporting.report.HTTPEndpoint')
 def test_http_server_error(mock_urlopen, kms, ssm, report_type):
     """Test if HTTP error without JSON payload is handled"""
 
@@ -299,7 +306,8 @@ def test_http_server_error(mock_urlopen, kms, ssm, report_type):
 
 
 @pytest.mark.parametrize('report_type', reports)
-@patch('urllib.request.urlopen')
+@httpretty.activate(allow_net_connect=False)
+@patch('reporting.report.HTTPEndpoint')
 def test_slack_auth_token_is_not_valid(mock_urlopen, kms, ssm, report_type):
     """Test if 401 error returned if slack token is invalid"""
 
@@ -315,7 +323,8 @@ def test_slack_auth_token_is_not_valid(mock_urlopen, kms, ssm, report_type):
 
 
 @pytest.mark.parametrize('report_type', reports)
-@patch('urllib.request.urlopen')
+@httpretty.activate(allow_net_connect=False)
+@patch('reporting.report.HTTPEndpoint')
 def test_multiple_emails_are_passed(mock_urlopen, kms, ssm, report_type):
     """Test if multiple emails are passed"""
 
@@ -332,7 +341,8 @@ def test_multiple_emails_are_passed(mock_urlopen, kms, ssm, report_type):
 
 
 @pytest.mark.parametrize('report_type', reports)
-@patch('urllib.request.urlopen')
+@httpretty.activate(allow_net_connect=False)
+@patch('reporting.report.HTTPEndpoint')
 def test_when_no_emails_are_passed(mock_urlopen, kms, ssm, report_type):
     """Test no slack message sent where no email addresses are provided"""
 
@@ -349,7 +359,8 @@ def test_when_no_emails_are_passed(mock_urlopen, kms, ssm, report_type):
 
 
 @pytest.mark.parametrize('report_type', reports)
-@patch('urllib.request.urlopen')
+@httpretty.activate(allow_net_connect=False)
+@patch('reporting.report.HTTPEndpoint')
 def test_when_empty_email_list_are_passed(mock_urlopen, kms, ssm, report_type):
     """Test no slack message sent when empty email address list is provided"""
 
@@ -365,7 +376,7 @@ def test_when_empty_email_list_are_passed(mock_urlopen, kms, ssm, report_type):
         assert len(df) == 1
 
 
-@patch('urllib.request.urlopen')
+@patch('reporting.report.HTTPEndpoint')
 def test_when_no_report_is_passed(mock_urlopen, kms, ssm):
     """Test should run the standard report only if no reportType is provided"""
 
