@@ -1,6 +1,5 @@
 import io
 import urllib
-import os
 from unittest.mock import patch
 
 import boto3
@@ -11,15 +10,6 @@ from moto import mock_aws
 
 from reporting import report
 from utils.utils import *
-
-
-def ensure_tmp_dir():
-    # Create the directory if it doesn't exist
-    if not os.path.exists("/tmp"):
-        os.makedirs("/tmp", exist_ok=True)
-
-    # Ensure we have write permissions (mode 0777)
-    os.chmod("/tmp", 0o700)
 
 
 timeout = 300
@@ -111,11 +101,6 @@ def configure_mock_urlopen(mock_urlopen, payload):
 def remove_csv(csv_file_path):
     if os.path.exists(csv_file_path):
         os.remove(csv_file_path)
-
-
-# Ensure /tmp directory exists for test file outputs
-def ensure_tmp_dir():
-    os.makedirs('/tmp', exist_ok=True)
 
 
 def check_request_headers_(req, headers, name):
@@ -219,9 +204,6 @@ def check_caselaw_report(df):
 @patch('urllib.request.urlopen')
 def test_report_with_valid_response(mock_urlopen, kms, ssm, report_type):
     """Test if report.csv generated with valid graphql response"""
-
-    # Ensure /tmp directory exists
-    ensure_tmp_dir()
 
     with patch('reporting.report.requests.post') as mock_post:
         set_up(kms)
@@ -349,9 +331,6 @@ def test_multiple_emails_are_passed(mock_urlopen, kms, ssm, report_type):
 def test_when_no_emails_are_passed(mock_urlopen, kms, ssm, report_type):
     """Test no slack message sent where no email addresses are provided"""
 
-    # Ensure /tmp directory exists
-    ensure_tmp_dir()
-
     with patch('reporting.report.requests.post') as mock_post:
         set_up(kms)
         setup_ssm(ssm)
@@ -369,9 +348,6 @@ def test_when_no_emails_are_passed(mock_urlopen, kms, ssm, report_type):
 def test_when_empty_email_list_are_passed(mock_urlopen, kms, ssm, report_type):
     """Test no slack message sent when empty email address list is provided"""
 
-    # Ensure /tmp directory exists
-    ensure_tmp_dir()
-
     with patch('reporting.report.requests.post') as mock_post:
         set_up(kms)
         setup_ssm(ssm)
@@ -387,9 +363,6 @@ def test_when_empty_email_list_are_passed(mock_urlopen, kms, ssm, report_type):
 @patch('urllib.request.urlopen')
 def test_when_no_report_is_passed(mock_urlopen, kms, ssm):
     """Test should run the standard report only if no reportType is provided"""
-
-    # Ensure /tmp directory exists
-    ensure_tmp_dir()
 
     with patch('reporting.report.requests.post') as mock_post:
         set_up(kms)
