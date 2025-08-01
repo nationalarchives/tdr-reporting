@@ -85,7 +85,10 @@ def generate_report(event):
         req.add_header('Accept', 'application/json; charset=utf-8')
         req.add_header('Content-type', 'application/json; charset=utf-8')
         response = urllib.request.urlopen(req, timeout=300)
-        data = json.load(response)
+        # Load JSON from bytes response
+        raw = response.read()
+        body = raw.decode('utf-8') if isinstance(raw, (bytes, bytearray)) else raw
+        data = json.loads(body)
         if 'errors' in data:
             raise Exception("Error in response", data['errors'])
 
