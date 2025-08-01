@@ -14,12 +14,6 @@ def slack(event, environment, csv_file_path):
     # Initialize Slack client with raw token
     token = decode("SLACK_BOT_TOKEN")
     client = WebClient(token=token, timeout=180)
-    # Lookup each user by email to validate token
-    for user in user_names:
-        resp = client.users_lookupByEmail(email=user)
-        if not resp.get("ok"):
-            raise SlackApiError(f"Error looking up user {user}: {resp.get('error')}", resp)
-    # Prepare upload details
     channel_id = decode("TDR_REPORTING_SLACK_CHANNEL_ID")
     report_type = event.get("reportType", "standard")
     title = f"TDR {report_type} report"
