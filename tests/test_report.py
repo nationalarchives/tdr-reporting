@@ -111,14 +111,14 @@ def check_request_headers_(req, headers, name):
         headers = headers.items()
     for k, v in headers:
         g = req.get_header(k)
-        eq_(g, v, 'Failed {} header {}: {!r} != {!r}'.format(name, k, v, g))
+        assert g == v, f'Failed {name} header {k}: {v!r} != {g!r}'
 
 
 def check_request_headers(req, base_headers):
     accept_header = 'application/json; charset=utf-8'
-    eq_(req.get_header('Accept'), accept_header)
+    assert req.get_header('Accept') == accept_header
     if req.method == 'POST':
-        eq_(req.get_header('Content-type'), 'application/json; charset=utf-8')
+        assert req.get_header('Content-type') == 'application/json; charset=utf-8'
     check_request_headers_(req, base_headers, 'base')
 
 
@@ -157,8 +157,8 @@ def check_mock_urlopen(mock_urlopen,
     assert mock_urlopen.called
     args = mock_urlopen.call_args
     req = args[0][0]
-    eq_(req.method, method)
-    eq_(args[1]['timeout'], timeout)
+    assert req.method == method
+    assert args[1]['timeout'] == timeout
     check_request_headers(req, base_headers)
     check_request_query(req, query or graphql_query)
 
