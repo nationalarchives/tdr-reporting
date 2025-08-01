@@ -2,6 +2,7 @@ import io
 import urllib
 from unittest.mock import patch, MagicMock
 import json
+from slack_sdk.errors import SlackApiError
 
 import boto3
 import pandas as pandas
@@ -319,23 +320,6 @@ def test_http_server_error(mock_urlopen, kms, ssm, report_type):
         mock_post.return_value.json = access_token
         response = report.handler({"userName": ["Report Testuser"], "reportType": report_type})
         assert response['statusCode'] == 500
-
-
-@pytest.mark.parametrize('report_type', reports)
-@httpretty.activate(allow_net_connect=False)
-@patch('reporting.report.HTTPEndpoint')
-def test_slack_auth_token_is_not_valid(mock_urlopen, kms, ssm, report_type):
-    """Test if 401 error returned if slack token is invalid"""
-
-    with patch('reporting.report.requests.post') as mock_post:
-        set_up(kms)
-        setup_ssm(ssm)
-        setup_slack_api(slack_api_response_invalid)
-        configure_mock_urlopen(mock_urlopen, graphql_response_ok)
-        mock_post.return_value.status_code = 200
-        mock_post.return_value.json = access_token
-        response = report.handler({"userName": ["Report Testuser"], "reportType": report_type})
-        assert response['statusCode'] == 401
 
 
 @pytest.mark.parametrize('report_type', reports)

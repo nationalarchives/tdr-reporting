@@ -1,7 +1,6 @@
 import os
 import boto3
 from slack_sdk import WebClient
-from slack_sdk.errors import SlackApiError
 from datetime import datetime
 from base64 import b64decode
 

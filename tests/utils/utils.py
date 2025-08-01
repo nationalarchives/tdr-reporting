@@ -47,6 +47,7 @@ def access_token():
 def setup_slack_api(response):
     # Stub both www and non-www Slack API hosts
     for host in ['https://www.slack.com/api', 'https://slack.com/api']:
+        # Stub user lookup
         httpretty.register_uri(
             httpretty.POST,
             f'{host}/users.lookupByEmail',
@@ -54,6 +55,7 @@ def setup_slack_api(response):
             body=json.dumps(response),
             status=200
         )
+        # Stub file upload (POST method)
         httpretty.register_uri(
             httpretty.POST,
             f'{host}/files.upload',
