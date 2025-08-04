@@ -32,6 +32,8 @@ You need to also setup following environment variables if you are running from I
 7. SLACK_BOT_TOKEN - Should be encrypted value from {environment} SSM Parameter store
 8. TDR_REPORTING_SLACK_CHANNEL_ID - Should be encrypted value from {environment} SSM Parameter store
 
+To use the decrypted SLACK_BOT_TOKEN vale, set the environment variable LOCAL_DEV="true" 
+
 You will need to provide a report type as the first argument, either standard or caselaw.
 
 Once these are set you can run report_runner.py from IntelliJ IDEA or run with following command:
