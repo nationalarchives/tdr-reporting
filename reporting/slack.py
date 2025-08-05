@@ -18,8 +18,6 @@ def slack(event, environment, csv_file_path):
     )
 
 def decode(env_var_name):
-    if "LOCAL_DEV" in os.environ:
-        return os.environ[env_var_name]  # Return token directly
     client = boto3.client("kms")
     decoded = client.decrypt(CiphertextBlob=b64decode(os.environ[env_var_name]),
                              EncryptionContext={"LambdaFunctionName": os.environ["AWS_LAMBDA_FUNCTION_NAME"]})
