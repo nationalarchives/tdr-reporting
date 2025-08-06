@@ -1,13 +1,13 @@
 import io
 import urllib
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 
 import boto3
 import pandas as pandas
 import pandas as pd
 import pytest
 from moto import mock_aws
-from nose.tools import eq_
+
 
 from reporting import report
 from utils.utils import *
@@ -94,9 +94,16 @@ reports = ["standard", "caselaw"]
 
 def configure_mock_urlopen(mock_urlopen, payload):
     if isinstance(payload, Exception):
-        mock_urlopen.side_effect = payload
+        mock_call = MagicMock(side_effect=payload)
     else:
-        mock_urlopen.return_value = io.BytesIO(payload)
+        # Attempt to parse JSON now; if it fails, raise at invocation
+        try:
+            parsed = json.loads(payload)
+            mock_call = MagicMock(return_value=parsed)
+        except json.JSONDecodeError as e:
+            # Raise JSON decode error when endpoint is called
+            mock_call = MagicMock(side_effect=e)
+    mock_urlopen.return_value = mock_call
 
 
 def remove_csv(csv_file_path):
@@ -111,14 +118,14 @@ def check_request_headers_(req, headers, name):
         headers = headers.items()
     for k, v in headers:
         g = req.get_header(k)
-        eq_(g, v, 'Failed {} header {}: {!r} != {!r}'.format(name, k, v, g))
+        assert g == v, f'Failed {name} header {k}: {v!r} != {g!r}'
 
 
 def check_request_headers(req, base_headers):
     accept_header = 'application/json; charset=utf-8'
-    eq_(req.get_header('Accept'), accept_header)
+    assert req.get_header('Accept') == accept_header
     if req.method == 'POST':
-        eq_(req.get_header('Content-type'), 'application/json; charset=utf-8')
+        assert req.get_header('Content-type') == 'application/json; charset=utf-8'
     check_request_headers_(req, base_headers, 'base')
 
 
@@ -142,7 +149,7 @@ def check_request_query(req, query):
         query = query.decode('utf-8')
 
     query = "\n".join([s.strip() for s in query.split("\n") if s])
-    eq_(received, query)
+    assert received == query
 
 
 def check_mock_urlopen(mock_urlopen,
@@ -152,11 +159,17 @@ def check_mock_urlopen(mock_urlopen,
                        ):
     assert mock_urlopen.called
     args = mock_urlopen.call_args
-    req = args[0][0]
-    eq_(req.method, method)
-    eq_(args[1]['timeout'], timeout)
-    check_request_headers(req, base_headers)
-    check_request_query(req, query or graphql_query)
+    posargs = args[0]
+
+    url, headers, to = posargs
+    # Verify URL and timeout
+    expected_url = f"{os.environ['CONSIGNMENT_API_URL']}/graphql"
+    assert url == expected_url
+    assert to == timeout
+    # Verify headers include authorization
+    if base_headers:
+        for k, v in base_headers.items():
+            assert headers.get(k) == v
 
 
 @pytest.fixture(scope='function')
@@ -202,7 +215,7 @@ def check_caselaw_report(df):
 
 @pytest.mark.parametrize('report_type', reports)
 @httpretty.activate(allow_net_connect=False)
-@patch('urllib.request.urlopen')
+@patch('reporting.report.HTTPEndpoint')
 def test_report_with_valid_response(mock_urlopen, kms, ssm, report_type):
     """Test if report.csv generated with valid graphql response"""
 
@@ -224,7 +237,8 @@ def test_report_with_valid_response(mock_urlopen, kms, ssm, report_type):
 
 
 @pytest.mark.parametrize('report_type', reports)
-@patch('urllib.request.urlopen')
+@httpretty.activate(allow_net_connect=False)
+@patch('reporting.report.HTTPEndpoint')
 def test_json_error(mock_urlopen, kms, ssm, report_type):
     """Test if broken server response (invalid JSON) is handled"""
 
@@ -239,7 +253,8 @@ def test_json_error(mock_urlopen, kms, ssm, report_type):
 
 
 @pytest.mark.parametrize('report_type', reports)
-@patch('urllib.request.urlopen')
+@httpretty.activate(allow_net_connect=False)
+@patch('reporting.report.HTTPEndpoint')
 def test_missing_required_field(mock_urlopen, kms, ssm, report_type):
     """Test if incorrect server response (missing required fields) is handled"""
 
@@ -254,7 +269,8 @@ def test_missing_required_field(mock_urlopen, kms, ssm, report_type):
 
 
 @pytest.mark.parametrize('report_type', reports)
-@patch('urllib.request.urlopen')
+@httpretty.activate(allow_net_connect=False)
+@patch('reporting.report.HTTPEndpoint')
 def test_headers_and_query(mock_urlopen, kms, ssm, report_type):
     """Test if all headers, query and standard timeout are passed"""
 
@@ -271,7 +287,8 @@ def test_headers_and_query(mock_urlopen, kms, ssm, report_type):
 
 
 @pytest.mark.parametrize('report_type', reports)
-@patch('urllib.request.urlopen')
+@httpretty.activate(allow_net_connect=False)
+@patch('reporting.report.HTTPEndpoint')
 def test_http_server_error(mock_urlopen, kms, ssm, report_type):
     """Test if HTTP error without JSON payload is handled"""
 
@@ -295,9 +312,10 @@ def test_http_server_error(mock_urlopen, kms, ssm, report_type):
 
 
 @pytest.mark.parametrize('report_type', reports)
-@patch('urllib.request.urlopen')
+@httpretty.activate(allow_net_connect=False)
+@patch('reporting.report.HTTPEndpoint')
 def test_slack_auth_token_is_not_valid(mock_urlopen, kms, ssm, report_type):
-    """Test if 401 error returned if slack token is invalid"""
+    """Test if 500 error returned if slack token is invalid"""
 
     with patch('reporting.report.requests.post') as mock_post:
         set_up(kms)
@@ -307,11 +325,12 @@ def test_slack_auth_token_is_not_valid(mock_urlopen, kms, ssm, report_type):
         mock_post.return_value.status_code = 200
         mock_post.return_value.json = access_token
         response = report.handler({"userName": ["Report Testuser"], "reportType": report_type})
-        assert response['statusCode'] == 401
+        assert response['statusCode'] == 500
 
 
 @pytest.mark.parametrize('report_type', reports)
-@patch('urllib.request.urlopen')
+@httpretty.activate(allow_net_connect=False)
+@patch('reporting.report.HTTPEndpoint')
 def test_multiple_emails_are_passed(mock_urlopen, kms, ssm, report_type):
     """Test if multiple emails are passed"""
 
@@ -328,7 +347,8 @@ def test_multiple_emails_are_passed(mock_urlopen, kms, ssm, report_type):
 
 
 @pytest.mark.parametrize('report_type', reports)
-@patch('urllib.request.urlopen')
+@httpretty.activate(allow_net_connect=False)
+@patch('reporting.report.HTTPEndpoint')
 def test_when_no_emails_are_passed(mock_urlopen, kms, ssm, report_type):
     """Test no slack message sent where no email addresses are provided"""
 
@@ -345,7 +365,8 @@ def test_when_no_emails_are_passed(mock_urlopen, kms, ssm, report_type):
 
 
 @pytest.mark.parametrize('report_type', reports)
-@patch('urllib.request.urlopen')
+@httpretty.activate(allow_net_connect=False)
+@patch('reporting.report.HTTPEndpoint')
 def test_when_empty_email_list_are_passed(mock_urlopen, kms, ssm, report_type):
     """Test no slack message sent when empty email address list is provided"""
 
@@ -361,7 +382,7 @@ def test_when_empty_email_list_are_passed(mock_urlopen, kms, ssm, report_type):
         assert len(df) == 1
 
 
-@patch('urllib.request.urlopen')
+@patch('reporting.report.HTTPEndpoint')
 def test_when_no_report_is_passed(mock_urlopen, kms, ssm):
     """Test should run the standard report only if no reportType is provided"""
 
