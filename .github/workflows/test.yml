@@ -16,8 +16,8 @@ jobs:
       - uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c
         with:
           python-version: '3.13'
-      - uses: nationalarchives/tdr-github-actions/.github/actions/run-git-secrets@main
-      - uses: nationalarchives/tdr-github-actions/.github/actions/slack-send@main
+      - uses: nationalarchives/tdr-github-actions/.github/actions/run-git-secrets@77d3f5c03ca72725da44436301b496b29fd5fbda
+      - uses: nationalarchives/tdr-github-actions/.github/actions/slack-send@77d3f5c03ca72725da44436301b496b29fd5fbda
         if: failure()
         with:
           message: ":warning: Secrets found in repository ${{ inputs.repo-name }}"

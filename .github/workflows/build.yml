@@ -6,7 +6,7 @@ on:
       - main
 jobs:
   pre-deploy:
-    uses: nationalarchives/tdr-github-actions/.github/workflows/lambda_build.yml@main
+    uses: nationalarchives/tdr-github-actions/.github/workflows/lambda_build.yml@77d3f5c03ca72725da44436301b496b29fd5fbda
     with:
       repo-name: tdr-reporting
       lambda-name: reporting
