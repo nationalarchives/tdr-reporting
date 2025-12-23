@@ -41,6 +41,29 @@ query {
   }
 }"""
 
+graphql_file_check_failures_query = """
+query {
+  getFileCheckFailures(getFileCheckFailuresInput: {}) {
+    fileId
+    consignmentId
+    consignmentType
+    rankOverFilePath
+    PUID
+    userId
+    statusType
+    statusValue
+    seriesName
+    transferringBodyName
+    antivirusResult
+    extension
+    identificationBasis
+    extensionMismatch
+    formatName
+    checksum
+    createdDateTime
+  }
+}"""
+
 graphql_response_ok = b'''
 {
   "data": {
@@ -50,6 +73,40 @@ graphql_response_ok = b'''
       ],
       "pageInfo": {"hasNextPage": false, "endCursor": "TDR-2022-C"}
     }
+  }
+}'''
+
+graphql_file_check_failures_response_ok = b'''
+{
+  "data": {
+    "getFileCheckFailures": [
+      {
+        "fileId": "07a3a4bd-0281-4a6d-a4c1-8d029dd4284b",
+        "consignmentId": "6e96c7ed-6b56-4c1f-b02c-13c1d4f85c36",
+        "consignmentType": "standard",
+        "rankOverFilePath": 1,
+        "PUID": "fmt/18",
+        "userId": "9ae3d9c5-8a71-4c50-9b19-b1ff4d315b70",
+        "statusType": "Antivirus",
+        "statusValue": "Failure",
+        "seriesName": "Test Series",
+        "transferringBodyName": "MOCK1 Department",
+        "antivirusResult": "INFECTED",
+        "extension": "pdf",
+        "identificationBasis": "Signature",
+        "extensionMismatch": false,
+        "formatName": "PDF",
+        "checksum": "abc123",
+        "createdDateTime": "2022-05-10T11:43:19Z"
+      }
+    ]
+  }
+}'''
+
+graphql_file_check_failures_response_empty = b'''
+{
+  "data": {
+    "getFileCheckFailures": []
   }
 }'''
 
@@ -89,8 +146,7 @@ slack_api_response_invalid = {
     "error": "invalid_auth"
 }
 
-reports = ["standard", "caselaw"]
-
+reports = ["standard", "caselaw", "fileCheckFailures"]
 
 def configure_mock_urlopen(mock_urlopen, payload):
     if isinstance(payload, Exception):
@@ -212,6 +268,26 @@ def check_caselaw_report(df):
     assert df['UserId'][0] == '9ae3d9c5-8a71-4c50-9b19-b1ff4d315b70'
     assert pd.isna(df['ExportDateTime'][0]) is True
 
+def check_file_check_failures_report(df):
+    assert len(df) == 1
+    assert len(df.columns) == 17
+    assert df['FileId'][0] == '07a3a4bd-0281-4a6d-a4c1-8d029dd4284b'
+    assert df['ConsignmentId'][0] == '6e96c7ed-6b56-4c1f-b02c-13c1d4f85c36'
+    assert df['ConsignmentType'][0] == 'standard'
+    assert df['RankOverFilePath'][0] == 1
+    assert df['PUID'][0] == 'fmt/18'
+    assert df['UserId'][0] == '9ae3d9c5-8a71-4c50-9b19-b1ff4d315b70'
+    assert df['StatusType'][0] == 'Antivirus'
+    assert df['StatusValue'][0] == 'Failure'
+    assert df['SeriesName'][0] == 'Test Series'
+    assert df['TransferringBodyName'][0] == 'MOCK1 Department'
+    assert df['AntivirusResult'][0] == 'INFECTED'
+    assert df['Extension'][0] == 'pdf'
+    assert df['IdentificationBasis'][0] == 'Signature'
+    assert df['ExtensionMismatch'][0] == False
+    assert df['FormatName'][0] == 'PDF'
+    assert df['Checksum'][0] == 'abc123'
+    assert df['CreatedDateTime'][0] == '2022-05-10T11:43:19Z'
 
 @pytest.mark.parametrize('report_type', reports)
 @httpretty.activate(allow_net_connect=False)
@@ -223,18 +299,24 @@ def test_report_with_valid_response(mock_urlopen, kms, ssm, report_type):
         set_up(kms)
         setup_ssm(ssm)
         setup_slack_api(slack_api_response_ok)
-        configure_mock_urlopen(mock_urlopen, graphql_response_ok)
+        if report_type == "fileCheckFailures":
+            configure_mock_urlopen(mock_urlopen, graphql_file_check_failures_response_ok)
+        else:
+            configure_mock_urlopen(mock_urlopen, graphql_response_ok)
+
         mock_post.return_value.status_code = 200
         mock_post.return_value.json = access_token
         csv_file_path = report.get_filepath(report_type)
         remove_csv(csv_file_path)
         report.handler({"userName": ["Report Testuser"], "reportType": report_type})
         df = pandas.read_csv(csv_file_path)
+
         if report_type == "standard":
             check_standard_report(df)
         elif report_type == "caselaw":
             check_caselaw_report(df)
-
+        elif report_type == "fileCheckFailures":
+            check_file_check_failures_report(df)
 
 @pytest.mark.parametrize('report_type', reports)
 @httpretty.activate(allow_net_connect=False)

@@ -52,3 +52,39 @@ class CaseLawReport(Report):
     @staticmethod
     def edge_filter(edge):
         return edge.node.consignmentType == "judgment"
+
+
+class FileCheckFailuresReport(Report):
+    def __init__(self):
+        self.fieldnames = [
+            'FileId', 'ConsignmentId', 'ConsignmentType', 'RankOverFilePath', 'PUID',
+            'UserId', 'StatusType', 'StatusValue', 'SeriesName', 'TransferringBodyName',
+            'AntivirusResult', 'Extension', 'IdentificationBasis', 'ExtensionMismatch',
+            'FormatName', 'Checksum', 'CreatedDateTime'
+        ]
+
+    @staticmethod
+    def failure_to_dict(failure):
+        return {
+            'FileId': failure.fileId,
+            'ConsignmentId': failure.consignmentId,
+            'ConsignmentType': failure.consignmentType,
+            'RankOverFilePath': failure.rankOverFilePath,
+            'PUID': failure.PUID or '',
+            'UserId': failure.userId,
+            'StatusType': failure.statusType,
+            'StatusValue': failure.statusValue,
+            'SeriesName': failure.seriesName or '',
+            'TransferringBodyName': failure.transferringBodyName or '',
+            'AntivirusResult': failure.antivirusResult or '',
+            'Extension': failure.extension or '',
+            'IdentificationBasis': failure.identificationBasis or '',
+            'ExtensionMismatch': failure.extensionMismatch,
+            'FormatName': failure.formatName or '',
+            'Checksum': failure.checksum or '',
+            'CreatedDateTime': failure.createdDateTime,
+        }
+
+    @staticmethod
+    def failure_filter(_):
+        return True

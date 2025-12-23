@@ -18,7 +18,20 @@ on:
         options:
           - standard
           - caselaw
+          - fileCheckFailures
         default: 'standard'
+      consignmentId:
+        description: 'Consignment ID (optional, for file check failures only)'
+        required: false
+        type: string
+      startDateTime:
+        description: 'Start date (YYYY-MM-DDTHH:MM:SSZ, optional, for file check failures only)'
+        required: false
+        type: string
+      endDateTime:
+        description: 'End date (YYYY-MM-DDTHH:MM:SSZ, optional, for file check failures only)'
+        required: false
+        type: string
 permissions:
   id-token: write
   contents: write
@@ -48,4 +61,4 @@ jobs:
           role-session-name: ECRLogin
       - name: run lambda function
         run: |
-          aws lambda invoke --function-name tdr-reporting-${{ inputs.environment }} --cli-read-timeout 0 --cli-binary-format raw-in-base64-out --payload '{"userName": "${{ github.actor }}","reportType": "${{ inputs.reportType }}"}' response.json
+          aws lambda invoke --function-name tdr-reporting-${{ inputs.environment }} --cli-read-timeout 0 --cli-binary-format raw-in-base64-out --payload '{"userName": "${{ github.actor }}","reportType": "${{ inputs.reportType }}", "consignmentId": "${{ inputs.consignmentId }}", "startDateTime": "${{ inputs.startDateTime }}", "endDateTime": "${{ inputs.endDateTime }}"}' response.json

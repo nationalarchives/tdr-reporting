@@ -1,4 +1,4 @@
-from sgqlc.types import Type, Field, list_of
+from sgqlc.types import Type, Field, list_of, Input
 from sgqlc.types.relay import Connection
 
 
@@ -39,3 +39,27 @@ class Edge(Type):
 
 class Consignments(Connection):
     edges = list_of(Edge)
+
+class FileCheckFailure(Type):
+    fileId = Field(str)
+    consignmentId = Field(str)
+    consignmentType = Field(str)
+    rankOverFilePath = Field(int)
+    PUID = Field(str)
+    userId = Field(str)
+    statusType = Field(str)
+    statusValue = Field(str)
+    seriesName = Field(str)
+    transferringBodyName = Field(str)
+    antivirusResult = Field(str)
+    extension = Field(str)
+    identificationBasis = Field(str)
+    extensionMismatch = Field(bool)
+    formatName = Field(str)
+    checksum = Field(str)
+    createdDateTime = Field(str)
+
+class GetFileCheckFailuresInput(Input):
+    consignmentId = Field(str)
+    startDateTime = Field(str)
+    endDateTime = Field(str)
