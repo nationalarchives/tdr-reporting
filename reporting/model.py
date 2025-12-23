@@ -1,4 +1,4 @@
-from sgqlc.types import Type, Field, list_of
+from sgqlc.types import Type, Field, list_of, Input
 from sgqlc.types.relay import Connection
 
 
@@ -59,7 +59,7 @@ class FileCheckFailure(Type):
     checksum = Field(str)
     createdDateTime = Field(str)
 
-class GetFileCheckFailuresInput(Type):
+class GetFileCheckFailuresInput(Input):
     consignmentId = Field(str)
     startDateTime = Field(str)
     endDateTime = Field(str)
