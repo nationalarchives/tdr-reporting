@@ -140,7 +140,6 @@ def generate_file_check_failures_report(event):
 def generate_consignments_report(event):
     environment = os.environ["AWS_LAMBDA_FUNCTION_NAME"].split("-")[2]
 
-    # Determine report type
     report_type = StandardReport()
     if event is not None and event.get("reportType") == "caselaw":
         report_type = CaseLawReport()
@@ -149,7 +148,6 @@ def generate_consignments_report(event):
     api_url = f'{os.environ["CONSIGNMENT_API_URL"]}/graphql'
     client_secret = get_client_secret()
 
-    # Collect all consignments with pagination
     all_consignments = []
     has_next_page = True
     current_cursor = None
