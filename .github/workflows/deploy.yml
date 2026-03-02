@@ -21,7 +21,7 @@ permissions:
   contents: write
 jobs:
   deploy:
-    uses: nationalarchives/tdr-github-actions/.github/workflows/lambda_deploy.yml@b6ba669dcee7fd4ac089c2e9fb234c48ddd93ab5 # v0.0.15
+    uses: nationalarchives/tdr-github-actions/.github/workflows/lambda_deploy.yml@13faff54c193651ee30482ebdf01e083c8b14203 # v0.0.17
     with:
       lambda-name: reporting
       deployment-package: function.zip
