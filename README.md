@@ -25,15 +25,10 @@ There are three different reports available.
 
 By default the report covers all consignments in the chosen environment. Two optional filters can be used to narrow the results.
 
-**Consignment ID**
+- **Consignment ID**: Enter a consignment UUID in the **Consignment ID** field to restrict the report to a single consignment. Leave blank to include all consignments.
+- **Date range**: Enter a start and end datetime in the **Start date** and **End date** fields to restrict the report to consignments within that period. Both fields must be provided together and must use the format `YYYY-MM-DDTHH:MM:SSZ`, for example `2026-01-01T00:00:00Z`. Leave both blank to include all dates.
 
-Enter a consignment UUID in the **Consignment ID** field to restrict the report to a single consignment. Leave blank to include all consignments.
-
-**Date range**
-
-Enter a start and end datetime in the **Start date** and **End date** fields to restrict the report to consignments within that period. Both fields must be provided together and must use the format `YYYY-MM-DDTHH:MM:SSZ`, for example `2026-01-01T00:00:00Z`. Leave both blank to include all dates.
-
-#### rank_over_file_path
+#### Output column: rank_over_file_path
 
 This column helps identify files that share the same file path within the file check failure results, while keeping the actual file paths anonymous. Rather than showing the path itself, it shows a number representing the file path's alphabetical rank among all file paths in the report results — so all files sharing the same path will have the same rank value. This makes it possible to spot duplicate paths without exposing the underlying file path data.
 
