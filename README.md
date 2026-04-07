@@ -17,7 +17,7 @@ python -m pytest
 There are three different reports available.
 * Standard - this is the service owner report which gives a detailed report of all consignments.
 * CaseLaw - this is a summary report with fewer fields than the standard report and is only for judgment consignments.
-* fileCheckFailures - all files that have failed one or more automated checks (e.g. antivirus, checksum, file format identification) during the transfer process.
+* fileCheckFailures - all files that have failed one or more automated file checks (e.g. antivirus, checksum, file format identification) during the transfer process.
 
 ### File check failures usage notes
 
