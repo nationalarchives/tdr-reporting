@@ -4,8 +4,13 @@ on:
   push:
     branches:
       - main
+permissions:
+  contents: read
 jobs:
   pre-deploy:
+    permissions:
+      contents: write
+      id-token: write
     uses: nationalarchives/tdr-github-actions/.github/workflows/lambda_build.yml@27efbc03aaaa9696eea85ab7a9363d6f92733471 # v0.0.34
     with:
       repo-name: tdr-reporting
