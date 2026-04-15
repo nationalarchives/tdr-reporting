@@ -53,10 +53,12 @@ jobs:
           with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
             print(f"account-number-secret-name={'${{ inputs.environment }}'.upper()}_ACCOUNT_NUMBER", file=fh)
         shell: python
+      - name: Set account number env
+        run: echo "ACCOUNT_NUMBER=${{ secrets[steps.account-number-secret-name.outputs.account-number-secret-name] }}" >> $GITHUB_ENV
       - name: Configure AWS credentials for Lambda
         uses: aws-actions/configure-aws-credentials@ec61189d14ec14c8efccab744f656cffd0e33f37 # v6.1.0
         with:
-          role-to-assume: arn:aws:iam::${{ secrets[steps.account-number-secret-name.outputs.account-number-secret-name] }}:role/${{ steps.role-name.outputs.role-name }}
+          role-to-assume: arn:aws:iam::${{ env.ACCOUNT_NUMBER }}:role/${{ steps.role-name.outputs.role-name }}
           aws-region: eu-west-2
           role-session-name: ECRLogin
       - name: run lambda function
