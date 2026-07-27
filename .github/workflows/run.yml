@@ -95,4 +95,4 @@ jobs:
           --arg type  "$INPUT_REPORT_TYPE" \
           --arg user  "$GITHUB_ACTOR_VALUE" \
           '{userName: $user, reportType: $type, environment: $env, consignmentId: $cid, startDateTime: $start, endDateTime: $end}')
-          aws lambda invoke --function-name tdr-reporting-${{ inputs.environment }} --cli-read-timeout 0 --cli-binary-format raw-in-base64-out --payload "$PAYLOAD" response.json
+          aws lambda invoke --function-name tdr-reporting-${INPUT_ENVIRONMENT} --cli-read-timeout 0 --cli-binary-format raw-in-base64-out --payload "$PAYLOAD" response.json
