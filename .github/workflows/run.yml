@@ -52,7 +52,7 @@ jobs:
           import os
           env = os.environ['INPUT_ENVIRONMENT']
           with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
-            print(f"role-name=TDRGithubActionsDeployLambda{os.environ['INPUT_ENVIRONMENT'].title()}", file=fh)
+            print(f"role-name=TDRGithubActionsDeployLambda{env.title()}", file=fh)
         shell: python
       - id: account-number-secret-name
         env:
