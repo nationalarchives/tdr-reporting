@@ -33,32 +33,66 @@ on:
         required: false
         type: string
 permissions:
+  # Only grant id-token:write if OIDC-based AWS authentication is used in this job.
+  # If AWS credentials come from repository secrets instead, remove id-token:write entirely.
   id-token: write
-  contents: write
+  contents: read # Downgrade to read unless a step genuinely pushes a commit or tag
 jobs:
   run:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - id: role-name
+        env:
+          INPUT_ENVIRONMENT: ${{ inputs.environment }}
         run: |
           import os
+          env = os.environ['INPUT_ENVIRONMENT']
           with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
-            print(f"role-name=TDRGithubActionsDeployLambda{'${{ inputs.environment }}'.title()}", file=fh)
+            print(f"role-name=TDRGithubActionsDeployLambda{env.title()}", file=fh)
         shell: python
       - id: account-number-secret-name
+        env:
+          INPUT_ENVIRONMENT: ${{ inputs.environment }}
         run: |
           import os
+          env = os.environ['INPUT_ENVIRONMENT']
           with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
-            print(f"account-number-secret-name={'${{ inputs.environment }}'.upper()}_ACCOUNT_NUMBER", file=fh)
+            print(f"account-number-secret-name={env.upper()}_ACCOUNT_NUMBER", file=fh)
         shell: python
       - name: Configure AWS credentials for Lambda
-        uses: aws-actions/configure-aws-credentials@d979d5b3a71173a29b74b5b88418bfda9437d885 # v6.1.1
+        uses: aws-actions/configure-aws-credentials@e6de054238d6b7531b4efff3b6587d9aade6a06c # v6.2.3
         with:
           role-to-assume: arn:aws:iam::${{ (inputs.environment == 'prod' && secrets.PROD_ACCOUNT_NUMBER) || (inputs.environment == 'staging' && secrets.STAGING_ACCOUNT_NUMBER) || secrets.INTG_ACCOUNT_NUMBER }}:role/${{ steps.role-name.outputs.role-name }}
           aws-region: eu-west-2
           role-session-name: ECRLogin
       - name: run lambda function
+        env:
+          INPUT_ENVIRONMENT: ${{ inputs.environment }}
+          INPUT_CONSIGNMENT_ID: ${{ inputs.consignmentId }}
+          INPUT_START_DATE_TIME: ${{ inputs.startDateTime }}
+          INPUT_END_DATE_TIME: ${{ inputs.endDateTime }}
+          INPUT_REPORT_TYPE: ${{ inputs.reportType }}
+          GITHUB_ACTOR_VALUE: ${{ github.actor }}
         run: |
-          aws lambda invoke --function-name tdr-reporting-${{ inputs.environment }} --cli-read-timeout 0 --cli-binary-format raw-in-base64-out --payload '{"userName": "${{ github.actor }}","reportType": "${{ inputs.reportType }}", "consignmentId": "${{ inputs.consignmentId }}", "startDateTime": "${{ inputs.startDateTime }}", "endDateTime": "${{ inputs.endDateTime }}"}' response.json
+          case "$INPUT_ENVIRONMENT" in
+            intg|staging|prod)
+                echo "Environment '$INPUT_ENVIRONMENT' is valid."
+                ;;
+            *)
+              echo "ERROR: Unrecognised environment '$INPUT_ENVIRONMENT'. Allowed values: intg, staging, prod."
+              exit 1
+              ;;
+          esac
+          PAYLOAD=$(jq -n \
+          --arg env   "$INPUT_ENVIRONMENT" \
+          --arg cid   "$INPUT_CONSIGNMENT_ID" \
+          --arg start "$INPUT_START_DATE_TIME" \
+          --arg end   "$INPUT_END_DATE_TIME" \
+          --arg type  "$INPUT_REPORT_TYPE" \
+          --arg user  "$GITHUB_ACTOR_VALUE" \
+          '{userName: $user, reportType: $type, environment: $env, consignmentId: $cid, startDateTime: $start, endDateTime: $end}')
+          aws lambda invoke --function-name tdr-reporting-${INPUT_ENVIRONMENT} --cli-read-timeout 0 --cli-binary-format raw-in-base64-out --payload "$PAYLOAD" response.json
