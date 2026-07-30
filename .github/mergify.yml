@@ -1,0 +1,20 @@
+queue_rules:
+  - name: default
+    batch_size: 1
+    queue_conditions:
+      - "check-success=test"
+pull_request_rules:
+  - name: automatic merge for dependency bots
+    conditions:
+      - or:
+          - author=tna-da-bot
+          - author=dependabot[bot]
+      - "check-success=test"
+    actions:
+      review:
+        type: APPROVE
+        message: Automatically approving dependency bot updates
+      queue:
+        name: default
+merge_queue:
+  max_parallel_checks: 1
