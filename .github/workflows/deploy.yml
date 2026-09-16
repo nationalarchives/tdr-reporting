@@ -10,6 +10,7 @@ on:
           - intg
           - staging
           - prod
+          - dev
         default: 'intg'
       to-deploy:
         description: 'Version to deploy'
