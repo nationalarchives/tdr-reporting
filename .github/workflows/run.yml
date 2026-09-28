@@ -64,7 +64,7 @@ jobs:
             print(f"account-number-secret-name={env.upper()}_ACCOUNT_NUMBER", file=fh)
         shell: python
       - name: Configure AWS credentials for Lambda
-        uses: aws-actions/configure-aws-credentials@cbe3b392738ccf3f987d68400dafcf4b0624a56c # v6.2.4
+        uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
         with:
           role-to-assume: arn:aws:iam::${{ (inputs.environment == 'prod' && secrets.PROD_ACCOUNT_NUMBER) || (inputs.environment == 'staging' && secrets.STAGING_ACCOUNT_NUMBER) || secrets.INTG_ACCOUNT_NUMBER }}:role/${{ steps.role-name.outputs.role-name }}
           aws-region: eu-west-2
