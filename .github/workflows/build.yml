@@ -11,7 +11,7 @@ jobs:
     permissions:
       contents: write
       id-token: write
-    uses: nationalarchives/tdr-github-actions/.github/workflows/lambda_build.yml@b469512bc31f0425270a12b87ebe68807c3a1daf # v0.0.46
+    uses: nationalarchives/tdr-github-actions/.github/workflows/lambda_build.yml@51a06bbc08eb65018238b144d0ad8bfd707a8ffa # v0.0.50
     with:
       repo-name: tdr-reporting
       lambda-name: reporting
