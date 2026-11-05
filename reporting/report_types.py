@@ -1,5 +1,12 @@
+from reporting.model import ConsignmentMetadata
+
+
 class Report:
     pass
+
+
+def get_source_system(node):
+    return getattr(getattr(node, "consignmentMetadata", None), "SourceSystem", "")
 
 
 class StandardReport(Report):
@@ -7,7 +14,7 @@ class StandardReport(Report):
         self.fieldnames = [
             "ConsignmentReference", "ConsignmentType", "TransferringBodyName", "TransferringBodyTdrCode",
             "SeriesCode", "ConsignmentId", "UserId", "CreatedDateTime", "TransferInitiatedDatetime", "ExportDateTime",
-            "ExportLocation", "FileCount", "TotalSize(Bytes)"]
+            "ExportLocation", "SourceSystem", "FileCount", "TotalSize(Bytes)"]
 
     @staticmethod
     def node_to_dict(node):
@@ -24,6 +31,7 @@ class StandardReport(Report):
                                                                                    'transferInitiatedDatetime') else '',
             "ExportDateTime": node.exportDatetime,
             "ExportLocation": node.exportLocation,
+            "SourceSystem": get_source_system(node),
             "FileCount": node.totalFiles,
             "TotalSize(Bytes)": node.totalFileSize
         }
