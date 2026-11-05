@@ -2,6 +2,10 @@ from sgqlc.types import Type, Field, list_of, Input
 from sgqlc.types.relay import Connection
 
 
+class ConsignmentMetadata(Type):
+    SourceSystem = Field(str)
+
+
 class FileMetadata(Type):
     clientSideFileSize = Field(int)
 
@@ -30,6 +34,7 @@ class Consignment(Type):
     transferringBodyName = Field(str)
     transferringBodyTdrCode = Field(str)
     seriesName = Field(str)
+    consignmentMetadata = Field(ConsignmentMetadata)
 
 
 class Edge(Type):

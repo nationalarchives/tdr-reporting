@@ -1,5 +1,6 @@
 import io
 import urllib
+from types import SimpleNamespace
 from unittest.mock import patch, MagicMock
 
 import boto3
@@ -9,7 +10,7 @@ import pytest
 from moto import mock_aws
 
 
-from reporting import report
+from reporting import report, report_types
 from utils.utils import *
 
 
@@ -31,6 +32,7 @@ query {
         transferringBodyName
         transferringBodyTdrCode        
         seriesName
+        consignmentMetadata        
       }
       cursor
     }
@@ -69,7 +71,26 @@ graphql_response_ok = b'''
   "data": {
     "consignments": {
       "edges": [
-          {"node": {"seriesName": null, "exportDatetime": null, "exportLocation": null, "userid": "9ae3d9c5-8a71-4c50-9b19-b1ff4d315b70", "totalFiles": "0", "totalFileSize": "0", "transferringBodyName": "MOCK1 Department", "transferringBodyTdrCode": "MOCK1", "consignmentid": "71c95054-74c1-4419-8864-67046c7fbbc7", "consignmentReference": "TDR-2022-C", "createdDatetime": "2022-05-10T11:43:19Z", "consignmentType": "judgment"}, "cursor": "TDR-2022-C"}
+          {
+            "node": {
+                 "seriesName": null,
+                 "exportDatetime": null,
+                 "exportLocation": null,
+                 "userid": "9ae3d9c5-8a71-4c50-9b19-b1ff4d315b70",
+                 "totalFiles": "0",
+                 "totalFileSize": "0", 
+                 "transferringBodyName": "MOCK1 Department", 
+                 "transferringBodyTdrCode": "MOCK1", 
+                 "consignmentid": "71c95054-74c1-4419-8864-67046c7fbbc7", 
+                 "consignmentReference": "TDR-2022-C", 
+                 "createdDatetime": "2022-05-10T11:43:19Z", 
+                 "consignmentType": "judgment",
+                 "consignmentMetadata": {
+                    "SourceSystem": "SharePoint"
+                 }
+            }, 
+            "cursor": "TDR-2022-C"
+          }
       ],
       "pageInfo": {"hasNextPage": false, "endCursor": "TDR-2022-C"}
     }
@@ -242,7 +263,7 @@ def ssm():
 
 def check_standard_report(df):
     assert len(df) == 1
-    assert len(df.columns) == 13
+    assert len(df.columns) == 14
     assert df['ConsignmentReference'][0] == 'TDR-2022-C'
     assert df['ConsignmentType'][0] == 'judgment'
     assert df['TransferringBodyName'][0] == 'MOCK1 Department'
@@ -254,6 +275,7 @@ def check_standard_report(df):
     assert pd.isna(df['TransferInitiatedDatetime'][0]) is True
     assert pd.isna(df['ExportDateTime'][0]) is True
     assert pd.isna(df['ExportLocation'][0]) is True
+    assert df['SourceSystem'][0] == 'SharePoint'
     assert df["FileCount"][0] == 0
     assert df['TotalSize(Bytes)'][0] == 0
 
@@ -288,6 +310,52 @@ def check_file_check_failures_report(df):
     assert df['FormatName'][0] == 'PDF'
     assert df['Checksum'][0] == 'abc123'
     assert df['CreatedDateTime'][0] == '2022-05-10T11:43:19Z'
+
+
+@pytest.mark.parametrize(
+    "node, expected",
+    [
+        pytest.param(
+            SimpleNamespace(), "", id="missing-metadata"
+        ),
+        pytest.param(
+            SimpleNamespace(consignmentMetadata=SimpleNamespace()),
+            "",
+            id="missing-source-system",
+        ),
+        pytest.param(
+            SimpleNamespace(
+                consignmentMetadata=SimpleNamespace(SourceSystem="TDR")
+            ),
+            "TDR",
+            id="source-system-present",
+        ),
+        pytest.param(
+            SimpleNamespace(consignmentMetadata=None),
+            "",
+            id="null-metadata",
+        ),
+        pytest.param(
+            SimpleNamespace(
+                consignmentMetadata=SimpleNamespace(SourceSystem="")
+            ),
+            "",
+            id="empty-source-system",
+        ),
+        pytest.param(
+            SimpleNamespace(
+                consignmentMetadata=SimpleNamespace(SourceSystem=None)
+            ),
+            None,
+            id="null-source-system-preserved",
+        ),
+    ],
+)
+
+
+def test_get_source_system(node, expected):
+    assert report_types.get_source_system(node) == expected
+
 
 @pytest.mark.parametrize('report_type', reports)
 @httpretty.activate(allow_net_connect=False)
