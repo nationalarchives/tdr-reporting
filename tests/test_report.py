@@ -15,56 +15,7 @@ from utils.utils import *
 
 
 timeout = 300
-graphql_query = """
-query {
-  consignments(limit: 100, currentCursor: null) {
-    edges {
-      node {
-        consignmentid
-        consignmentType
-        consignmentReference
-        userid
-        exportDatetime
-        exportLocation
-        createdDatetime
-        totalFiles
-        totalFileSize
-        transferringBodyName
-        transferringBodyTdrCode        
-        seriesName
-        consignmentMetadata        
-      }
-      cursor
-    }
-    pageInfo {
-      hasNextPage
-      endCursor
-    }
-  }
-}"""
 
-graphql_file_check_failures_query = """
-query {
-  getFileCheckFailures(getFileCheckFailuresInput: {}) {
-    fileId
-    consignmentId
-    consignmentType
-    rankOverFilePath
-    PUID
-    userId
-    statusType
-    statusValue
-    seriesName
-    transferringBodyName
-    antivirusResult
-    extension
-    identificationBasis
-    extensionMismatch
-    formatName
-    checksum
-    createdDateTime
-  }
-}"""
 
 graphql_response_ok = b'''
 {
@@ -230,9 +181,7 @@ def check_request_query(req, query):
 
 
 def check_mock_urlopen(mock_urlopen,
-                       method='POST',
-                       base_headers=None,
-                       query=None,  # defaults to `graphql_query`
+                       base_headers=None
                        ):
     assert mock_urlopen.called
     args = mock_urlopen.call_args
