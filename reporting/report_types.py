@@ -1,6 +1,3 @@
-from reporting.model import ConsignmentMetadata
-
-
 class Report:
     pass
 
