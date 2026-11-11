@@ -3,7 +3,8 @@ from sgqlc.types.relay import Connection
 
 
 class ConsignmentMetadata(Type):
-    SourceSystem = Field(str)
+    propertyName = Field(str)
+    value = Field(str)
 
 
 class FileMetadata(Type):
@@ -34,7 +35,7 @@ class Consignment(Type):
     transferringBodyName = Field(str)
     transferringBodyTdrCode = Field(str)
     seriesName = Field(str)
-    consignmentMetadata = Field(ConsignmentMetadata)
+    consignmentMetadata = Field(list_of(ConsignmentMetadata))
 
 
 class Edge(Type):

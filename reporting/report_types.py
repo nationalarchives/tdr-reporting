@@ -1,12 +1,13 @@
-from reporting.model import ConsignmentMetadata
-
-
 class Report:
     pass
 
 
 def get_source_system(node):
-    return getattr(getattr(node, "consignmentMetadata", None), "SourceSystem", "")
+    metadata = getattr(node, "consignmentMetadata", None) or []
+    return next(
+        (item.value for item in metadata if item.propertyName == "SourceSystem"),
+        "",
+    )
 
 
 class StandardReport(Report):
