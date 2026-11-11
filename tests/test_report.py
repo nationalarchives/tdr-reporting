@@ -36,9 +36,16 @@ graphql_response_ok = b'''
                  "consignmentReference": "TDR-2022-C", 
                  "createdDatetime": "2022-05-10T11:43:19Z", 
                  "consignmentType": "judgment",
-                 "consignmentMetadata": {
-                    "SourceSystem": "SharePoint"
-                 }
+                 "consignmentMetadata": [                 
+                    {
+                        "propertyName": "SourceSystem",
+                        "value": "SharePoint"
+                    },
+                    {
+                        "propertyName": "PublicRecordsConfirmed",
+                        "value": "true"
+                    }                 
+                 ]
             }, 
             "cursor": "TDR-2022-C"
           }
@@ -265,19 +272,9 @@ def check_file_check_failures_report(df):
     "node, expected",
     [
         pytest.param(
-            SimpleNamespace(), "", id="missing-metadata"
-        ),
-        pytest.param(
-            SimpleNamespace(consignmentMetadata=SimpleNamespace()),
+            SimpleNamespace(),
             "",
-            id="missing-source-system",
-        ),
-        pytest.param(
-            SimpleNamespace(
-                consignmentMetadata=SimpleNamespace(SourceSystem="TDR")
-            ),
-            "TDR",
-            id="source-system-present",
+            id="missing-metadata",
         ),
         pytest.param(
             SimpleNamespace(consignmentMetadata=None),
@@ -285,23 +282,63 @@ def check_file_check_failures_report(df):
             id="null-metadata",
         ),
         pytest.param(
-            SimpleNamespace(
-                consignmentMetadata=SimpleNamespace(SourceSystem="")
-            ),
+            SimpleNamespace(consignmentMetadata=[]),
             "",
-            id="empty-source-system",
+            id="empty-metadata",
         ),
         pytest.param(
-            SimpleNamespace(
-                consignmentMetadata=SimpleNamespace(SourceSystem=None)
-            ),
+            SimpleNamespace(consignmentMetadata=[
+                SimpleNamespace(propertyName="PublicRecordsConfirmed", value="true"),
+            ]),
+            "",
+            id="no-matching-property",
+        ),
+        pytest.param(
+            SimpleNamespace(consignmentMetadata=[
+                SimpleNamespace(propertyName="SourceSystem", value="SharePoint"),
+            ]),
+            "SharePoint",
+            id="matching-property",
+        ),
+        pytest.param(
+            SimpleNamespace(consignmentMetadata=[
+                SimpleNamespace(propertyName="PublicRecordsConfirmed", value="true"),
+                SimpleNamespace(propertyName="SourceSystem", value="SharePoint"),
+            ]),
+            "SharePoint",
+            id="matching-property-after-non-match",
+        ),
+        pytest.param(
+            SimpleNamespace(consignmentMetadata=[
+                SimpleNamespace(propertyName="SourceSystem", value="SharePoint"),
+                SimpleNamespace(propertyName="SourceSystem", value="TDR"),
+            ]),
+            "SharePoint",
+            id="first-match-wins",
+        ),
+        pytest.param(
+            SimpleNamespace(consignmentMetadata=[
+                SimpleNamespace(propertyName="SourceSystem", value=""),
+            ]),
+            "",
+            id="empty-value-preserved",
+        ),
+        pytest.param(
+            SimpleNamespace(consignmentMetadata=[
+                SimpleNamespace(propertyName="SourceSystem", value=None),
+            ]),
             None,
-            id="null-source-system-preserved",
+            id="null-value-preserved",
+        ),
+        pytest.param(
+            SimpleNamespace(consignmentMetadata=[
+                SimpleNamespace(propertyName="sourceSystem", value="SharePoint"),
+            ]),
+            "",
+            id="property-name-is-case-sensitive",
         ),
     ],
 )
-
-
 def test_get_source_system(node, expected):
     assert report_types.get_source_system(node) == expected
 
