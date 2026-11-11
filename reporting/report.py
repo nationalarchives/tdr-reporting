@@ -49,6 +49,7 @@ def get_query(cursor=None):
     node.transferringBodyName()
     node.transferringBodyTdrCode()
     node.seriesName()
+    node.consignmentMetadata()
     edges.cursor()
     consignments_query.page_info.__fields__('has_next_page')
     consignments_query.page_info.__fields__(end_cursor=True)
