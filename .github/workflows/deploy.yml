@@ -11,6 +11,7 @@ on:
           - staging
           - prod
           - dev
+          - drdev
         default: 'intg'
       to-deploy:
         description: 'Version to deploy'
